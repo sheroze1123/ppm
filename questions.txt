@@ -1,0 +1,2 @@
+What happens when k = 0?
+
