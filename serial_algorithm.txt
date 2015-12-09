@@ -1,0 +1,13 @@
+1. Initialize particle x,y locations
+2. For t = 0; t < t_max; t += dt
+3.      For k = 1 to N
+4.          If particle_k is in rho_ij
+5.              rho_ij += m_k
+6.      rho /= delta_d^3
+7.      rho(k) = FFT(rho)
+8.      E_x(x,y) = FFT-1(- 4 * pi * k_x * i *  rho(k)/k^2)
+9.      E_y(x,y) = FFT-1(- 4 * pi * k_y * i *  rho(k)/k^2)
+12.     v_x = u_x + E_x * dt
+13.     v_y = u_y + E_y * dt
+14.     d_new_x = d_old_x + v_x * dt
+15.     d_new_y = d_old_y + v_y * dt
