@@ -6,8 +6,8 @@ from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.animation as animation
 
 fname = 'dt%d.csv'
-x_i, y_i = np.loadtxt('initial.csv', delimiter=' ', usecols=(0,1), unpack=True)
-plt.scatter(x_i, y_i, c='r', marker='o', s=50)
+x_i, y_i = np.loadtxt('dt0.csv', delimiter=' ', usecols=(0,1), unpack=True)
+# plt.scatter(x_i, y_i, c='r', marker='o', s=50)
 
 # for i in range(1,30):
     # x_f, y_f = np.loadtxt(fname%i, delimiter=' ', usecols=(0,1), unpack=True)
@@ -36,10 +36,7 @@ x2,y2 = [],[]
 x3,y3 = [],[]
 
 def animate(i):
-    if i is 0:
-        x_f, y_f = np.loadtxt('initial.csv', delimiter=' ', usecols=(0,1), unpack=True)
-    else:
-        x_f, y_f = np.loadtxt(fname%(i), delimiter=' ', usecols=(0,1), unpack=True)
+    x_f, y_f = np.loadtxt(fname%(i), delimiter=' ', usecols=(0,1), unpack=True)
 
     x = x_f[0]
     y = y_f[0]
@@ -65,6 +62,6 @@ def animate(i):
     return lines
 
 anim = animation.FuncAnimation(fig, animate, init_func=init,
-                               frames=30, interval=100, blit=True)
+                               frames=100, interval=100, blit=True)
 
 anim.save('3body.mp4')
