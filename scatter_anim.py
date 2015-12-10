@@ -11,6 +11,7 @@ class AnimatedScatter(object):
 
         # Setup the figure and axes...
         self.fig, self.ax = plt.subplots()
+        self.ax.set_axis_bgcolor('black')
         # Then setup FuncAnimation.
         self.ani = animation.FuncAnimation(self.fig, self.update, interval=10, 
                                            init_func=self.setup_plot, blit=True)
@@ -18,7 +19,7 @@ class AnimatedScatter(object):
     def setup_plot(self):
         """Initial drawing of the scatter plot."""
         data = next(self.stream)
-        self.scat = self.ax.scatter(data[0,:], data[1,:], animated=True)
+        self.scat = self.ax.scatter(data[0,:], data[1,:], c='red', animated=True)
         self.ax.axis([0, 100, 0, 100])
 
         # For FuncAnimation's sake, we need to return the artist we'll be using
@@ -32,7 +33,7 @@ class AnimatedScatter(object):
         fname = 'dt%d.csv'
         while True:
             i += 1
-            if i is 100:
+            if i is 1000:
                 break;
             data = np.loadtxt(fname%(i), delimiter=' ')
             yield data

@@ -49,7 +49,7 @@ int main() {
     // TIME STEP ////////////////////////////////
     
     double time = 0.0;
-    for (int t=1; t<100; t++) {
+    for (int t=1; t<1000; t++) {
 
         time = t*delta_t;
     
