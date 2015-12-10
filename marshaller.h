@@ -18,13 +18,16 @@ class Marshaller {
 
     Marshaller(const Marshaller&) = delete;
 
+    ~Marshaller();
+
     // Write the position and velocity of all N_p particles to the file managed
     // by this Marshaller.
     void marshal(const double *position, const double *velocity);
 
   private:
     std::ofstream f_;
-    const int N_p_;
+    const int N_p_; // number of particles
+    int n_;         // number of times marshal is called
 };
 
 #endif // MARSHALLER_H
