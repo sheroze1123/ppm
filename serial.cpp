@@ -1,11 +1,13 @@
-#include <iostream>
-#include <fstream>
-#include <vector>
-#include <random>
-#include <string>
 #include <cmath>
 #include <complex.h>
 #include <fftw3.h>
+#include <fstream>
+#include <iostream>
+#include <random>
+#include <string>
+#include <vector>
+
+#include "marshaller.h"
 
 using namespace std;
 
@@ -13,7 +15,7 @@ const double G = 6.6748 * 10e-11; //TODO: Scale everything by G
 
 int main() {
     // INITIALIZATION ////////////////////////////
-    
+
     int N=128, N_p = 300;
     double L = 100.0;
     double *rho = (double*) malloc (N * N * sizeof(double));
@@ -31,28 +33,27 @@ int main() {
     mt19937 gen(rd());
     uniform_real_distribution<> pos_dis(40.0, 60.0);
     uniform_real_distribution<> mass_dis(0.1, 3.0);
-    ofstream fp;
-    fp.open("dt0.csv");
     for (int i=0; i<N_p; i++) {
         particle_pos[2*i]   = pos_dis(gen);
         particle_pos[2*i+1] = pos_dis(gen);
-        fp << particle_pos[2*i] << " " << particle_pos[2*i+1] << endl;
         particle_vel[2*i]   = 0.0;
         particle_vel[2*i+1] = 0.0;
         particle_mass[i]    = mass_dis(gen);
     }
-    fp.close();
+
+    Marshaller marshaller("particles.txt", L, N, N_p, particle_mass);
+    marshaller.marshal(particle_pos, particle_vel);
 
     fftw_plan rho_plan =  fftw_plan_dft_r2c_2d(N, N, rho, rho_k, FFTW_ESTIMATE);
     fftw_plan phi_plan =  fftw_plan_dft_c2r_2d(N, N, rho_k, phi, FFTW_ESTIMATE);
 
     // TIME STEP ////////////////////////////////
-    
+
     double time = 0.0;
     for (int t=1; t<1000; t++) {
 
         time = t*delta_t;
-    
+
         for (int i=0; i<N*N; i++) {
             rho[i] = 0.0;
         }
@@ -116,10 +117,6 @@ int main() {
             }
         }
 
-        char fname[10];
-        sprintf(fname, "dt%d.csv", t);
-
-        fp.open(fname);
         for (int i=0; i<N_p; i++) {
             ind_x =  floor(particle_pos[2*i]/delta_d);
             ind_y =  floor(particle_pos[2*i+1]/delta_d);
@@ -132,9 +129,8 @@ int main() {
             if (particle_pos[2*i] > L) particle_pos[2*i] -= L;
             if (particle_pos[2*i+1] < 0.0) particle_pos[2*i+1] += L;
             if (particle_pos[2*i+1] > L) particle_pos[2*i+1] -= L;
-            fp << particle_pos[2*i] << " " << particle_pos[2*i+1] << endl;
         }
-        fp.close();
+        marshaller.marshal(particle_pos, particle_vel);
     }
 
 
