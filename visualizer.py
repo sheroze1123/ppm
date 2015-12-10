@@ -2,12 +2,14 @@ from matplotlib import animation
 from matplotlib import pyplot as plt
 from random import randint
 import argparse
+import math
 import numpy as np
 
 # Marshaller text file parser.
 class Parser(object):
     def __init__(self, filename):
         self.f = open(filename, "r")
+        self.n = int(self.f.readline())
         self.L = float(self.f.readline())
         self.N = int(self.f.readline())
         self.N_p = int(self.f.readline())
@@ -50,35 +52,24 @@ def random_velocity():
 
 def main(args):
     parser = Parser(args.filename)
-    print parser.L
-    print parser.N
-    print parser.N_p
-    print parser.masses
-    print parser.parse()
-
-    fps = 30                # frames per second
-    seconds = 3             # mp4 length in seconds
-    frames = fps * seconds  # number of mp4 frames
-    n, m = 250, 250         # height (n) and width (n) of mp4 in pixels
-    nparticles = n * m / 10 # number of particles
+    fps = 30                 # frames per second
+    frames = parser.n        # number of mp4 frames
+    n = math.ceil(parser.L)  # height (n) of mp4 in pixels
+    m = n                    # width (n)  of mp4 in pixels
+    nparticles = parser.N_p  # number of particles
 
     fig = plt.figure()
     im = plt.imshow(black(n, m), interpolation="none")
-    points = [(randint(0, m-1), randint(0, n-1)) for _ in range(nparticles)]
-    vs = [random_velocity() for _ in range(nparticles)]
 
     def init():
         a = black(n, m)
-        render(points, a)
         im.set_array(a)
         return [im]
 
     def animate(i):
-        for (i, (x, y)) in enumerate(points):
-            (dx, dy) = vs[i]
-            points[i] = ((x + dx) % m, (y + dy) % n)
+        (pos, _) = parser.parse()
         a = black(n, m)
-        render(points, a)
+        render(pos, a)
         im.set_array(a)
         return [im]
 
