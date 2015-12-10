@@ -1,3 +1,6 @@
+import matplotlib
+matplotlib.use('Agg')
+
 from matplotlib import animation
 from matplotlib import pyplot as plt
 from random import randint
