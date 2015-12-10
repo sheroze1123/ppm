@@ -34,17 +34,17 @@ def black(n, m):
     a[:,:,3] += 1
     return a
 
-def render(points, a):
+def render(points, masses, mass, a):
     """
-    Given a list of (x, y) coordinates (`points`) and a numpy array (`a`)
-    decrease the opacity of a[x, y] for each (x, y) in `points`. This has the
-    effect of whitening the position of each particle. If multiple particles
-    overlap, the position becomes whiter. It is a precondition that all (x, y)
-    coordinates are within `a`.
+    Given a list of (x, y) coordinates (`points`), their masses (`masses`), the
+    amount of mass to make a white pixel (`mass`), and a numpy array (`a`),
+    render decreases the opacity of a[x, y] for each (x, y) in `points`
+    proportional to its mass. This has the effect of whitening the position of
+    each particle. If multiple particles overlap, the position becomes whiter.
+    It is a precondition that all (x, y) coordinates are within `a`.
     """
-    dalpha = 0.5
-    for (x, y) in points:
-        a[x,y,3] = min(a[x,y,3] - dalpha, 1)
+    for ((x, y), m) in zip(points, masses):
+        a[x,y,3] = max(a[x,y,3] - (m / mass), 0)
 
 def main(args):
     parser = Parser(args.filename)
@@ -67,7 +67,7 @@ def main(args):
         (pos, _) = parser.parse()
         pos = [(scale(x), scale(y)) for (x, y) in pos]
         a = black(pixels, pixels)
-        render(pos, a)
+        render(pos, parser.masses, args.mass, a)
         im.set_array(a)
         return [im]
 
@@ -92,6 +92,12 @@ def parse_args():
         type=int,
         default=30,
         help="frames per second"
+    )
+    parser.add_argument(
+        "-m", "--mass",
+        type=int,
+        default=4,
+        help="the amount of mass to make a pixel compeltely white"
     )
 
     return parser.parse_args()
