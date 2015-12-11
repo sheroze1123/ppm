@@ -39,16 +39,20 @@ class Parser(object):
 def render(points, masses, mass, a):
     """TODO: rewrite for moviepy."""
     for ((x, y), m) in zip(points, masses):
-        a[x,y] = 255
+        try:
+            a[x,y] = 255
+        except IndexError as e:
+            # TODO: make this impossible
+            print e
 
 def main(args):
     parser = Parser(args.filename)
-    fps = args.fps                  # frames per second
-    frames = parser.n               # number of mp4 frames
-    duration = float(frames) / fps  # duration of mp4 in seconds
-    nparticles = parser.N_p + 1     # number of particles
-    pixels = args.pixels            # height and width of mp4 in pixels
-    a = np.zeros(pixels, pixels, 3) # black image
+    fps = args.fps                    # frames per second
+    frames = parser.n                 # number of mp4 frames
+    duration = float(frames) / fps    # duration of mp4 in seconds
+    nparticles = parser.N_p + 1       # number of particles
+    pixels = args.pixels              # height and width of mp4 in pixels
+    a = np.zeros((pixels, pixels, 3)) # black image
 
     def make_frame(t):
         def scale(x):
