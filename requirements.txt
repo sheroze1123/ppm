@@ -1,0 +1,5 @@
+decorator==4.0.6
+imageio==1.4
+moviepy==0.2.2.11
+numpy==1.10.1
+tqdm==3.1.4

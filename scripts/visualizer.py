@@ -1,81 +1,67 @@
-import matplotlib
-matplotlib.use('Agg')
-
-from matplotlib import animation
-from matplotlib import pyplot as plt
 from random import randint
 import argparse
 import math
+import moviepy.editor as mpy
 import numpy as np
 
 # Marshaller text file parser.
 class Parser(object):
     def __init__(self, filename):
-        self.f = open(filename, "r")
-        self.n = int(self.f.readline())
-        self.L = float(self.f.readline())
-        self.N = int(self.f.readline())
-        self.N_p = int(self.f.readline())
+        self.last = None                  # the last set of data read
+        self.f = open(filename, "r")      # underlying file
+        self.n = int(self.f.readline())   # number of time steps
+        self.L = float(self.f.readline()) # side length of simulation
+        self.N = int(self.f.readline())   # side length of grid points
+        self.N_p = int(self.f.readline()) # number of particles
         self.masses = [float(self.f.readline()) for _ in range(self.N_p)]
 
     def parse(self):
-        """Parses (positions, velocities)"""
-        positions = []
-        velocities = []
-        for _ in range(self.N_p):
-            x, y, vx, vy = [float(_) for _ in self.f.readline().split()]
-            positions.append((x, y))
-            velocities.append((vx, vy))
-        return (positions, velocities)
-
-def black(n, m):
-    """
-    Returns a n by m RGBA numpy array where each pixel is black with 100%
-    opacity.
-    """
-    a = np.zeros((n, m, 4))
-    a[:,:,3] += 1
-    return a
+        """
+        Parses the next set of (positions, velocities) from the underlying
+        file. If the end of the file is reached, then the last valid data is
+        returned.
+        """
+        try:
+            positions = []
+            velocities = []
+            for _ in range(self.N_p):
+                x, y, vx, vy = [float(_) for _ in self.f.readline().split()]
+                positions.append((x, y))
+                velocities.append((vx, vy))
+            self.last = (positions, velocities)
+            return self.last
+        except ValueError:
+            # A ValueError is raised when we try to read off the end of the
+            # file. We catch this exception and return the last valid data
+            # read.
+            return self.last
 
 def render(points, masses, mass, a):
-    """
-    Given a list of (x, y) coordinates (`points`), their masses (`masses`), the
-    amount of mass to make a white pixel (`mass`), and a numpy array (`a`),
-    render decreases the opacity of a[x, y] for each (x, y) in `points`
-    proportional to its mass. This has the effect of whitening the position of
-    each particle. If multiple particles overlap, the position becomes whiter.
-    It is a precondition that all (x, y) coordinates are within `a`.
-    """
+    """TODO: rewrite for moviepy."""
     for ((x, y), m) in zip(points, masses):
-        a[x,y,3] = max(a[x,y,3] - (m / mass), 0)
+        a[x,y] = 255
 
 def main(args):
     parser = Parser(args.filename)
-    fps = args.fps               # frames per second
-    frames = parser.n            # number of mp4 frames
-    nparticles = parser.N_p + 1  # number of particles
-    pixels = args.pixels         # height and width of mp4 in pixels
+    fps = args.fps                  # frames per second
+    frames = parser.n               # number of mp4 frames
+    duration = float(frames) / fps  # duration of mp4 in seconds
+    nparticles = parser.N_p + 1     # number of particles
+    pixels = args.pixels            # height and width of mp4 in pixels
+    a = np.zeros(pixels, pixels, 3) # black image
 
-    fig = plt.figure()
-    im = plt.imshow(black(pixels, pixels), interpolation="none")
-
-    def init():
-        a = black(pixels, pixels)
-        im.set_array(a)
-        return [im]
-
-    def animate(i):
+    def make_frame(t):
         def scale(x):
             return int(x * float(pixels) / parser.L)
+
         (pos, _) = parser.parse()
         pos = [(scale(x), scale(y)) for (x, y) in pos]
-        a = black(pixels, pixels)
+        a[:] = 0
         render(pos, parser.masses, args.mass, a)
-        im.set_array(a)
-        return [im]
+        return a
 
-    anim = animation.FuncAnimation(fig, animate, init_func=init, frames=frames, blit=True)
-    anim.save('particles.mp4', fps=fps)
+    clip = mpy.VideoClip(make_frame, duration=duration)
+    clip.write_videofile("particles.mp4", fps=fps)
 
 def parse_args():
     parser = argparse.ArgumentParser()
