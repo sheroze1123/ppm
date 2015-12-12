@@ -5,7 +5,7 @@ SOURCES=serial.cpp
 EXECUTABLE=serial
 LIB=-L/opt/local/lib -Lfftw/lib
 INC=-I/opt/local/include -Ifftw/include
-OBJECTS = marshaller.o
+OBJECTS = marshaller.o server.o
 
 all: $(SOURCES) $(OBJECTS) $(EXECUTABLE)
 

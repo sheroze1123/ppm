@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "marshaller.h"
+#include "server.h"
 
 using namespace std;
 
@@ -41,6 +42,7 @@ int main() {
         particle_mass[i]    = mass_dis(gen);
     }
 
+    Server server(8000, 0.0, 0, 0, particle_mass);
     Marshaller marshaller("particles.txt", L, N, N_p, particle_mass);
     marshaller.marshal(particle_pos, particle_vel);
 
