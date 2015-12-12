@@ -1,10 +1,12 @@
-import sys
-from PIL import Image, ImageTk
-from parser import FileParser
-from renderer import Renderer
 import Tkinter
 import math
 import numpy as np
+import renderer
+import sys
+
+from PIL import Image, ImageTk
+from parser import FileParser, NetParser
+from renderer import Renderer
 
 class Window(object):
     def __init__(self, fps, renderer):
@@ -31,15 +33,15 @@ class Window(object):
     def mainloop(self):
         self.root.mainloop()
 
-def main(filename):
-    fps = 30
-    pixels = 500
-    max_mass = 1
-
-    parser = FileParser(filename)
-    renderer = Renderer(pixels, max_mass, parser)
-    window = Window(fps, renderer)
+def main(args):
+    if "filename" in args:
+        parser = FileParser(args.filename)
+    else:
+        parser = NetParser(args.host, args.port)
+    renderer = Renderer(args.pixels, args.mass, parser)
+    window = Window(args.fps, renderer)
     window.mainloop()
 
 if __name__ == "__main__":
-    main(sys.argv[1])
+    import argparser
+    main(argparser.parser().parse_args())
