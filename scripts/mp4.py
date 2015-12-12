@@ -1,3 +1,4 @@
+import argparse
 import argparser
 import math
 import moviepy.editor as mpy
@@ -9,10 +10,7 @@ from random import randint
 from renderer import Renderer
 
 def main(args):
-    if "filename" in args:
-        parser = FileParser(args.filename)
-    else:
-        parser = NetParser(args.host, args.port)
+    parser = FileParser(args.filename)
     renderer = Renderer(args.pixels, args.mass, parser)
 
     fps = args.fps                    # frames per second
@@ -24,7 +22,9 @@ def main(args):
     clip.write_videofile("particles.mp4", fps=fps)
 
 def parse_args():
-    parser = argparser.parser()
+    parser = argparse.ArgumentParser()
+    argparser.renderer_args(parser)
+    argparser.file_args(parser)
     parser.add_argument(
         "-o", "--output",
         default="particles.mp4",

@@ -1,4 +1,5 @@
 import Tkinter
+import argparse
 import math
 import numpy as np
 import renderer
@@ -42,6 +43,18 @@ def main(args):
     window = Window(args.fps, renderer)
     window.mainloop()
 
+def parse_args():
+    parser = argparse.ArgumentParser()
+    subparsers = parser.add_subparsers()
+    fileparser = subparsers.add_parser('file', help="file parser")
+    netparser = subparsers.add_parser('net', help="network parser")
+
+    argparser.renderer_args(parser)
+    argparser.file_args(fileparser)
+    argparser.net_args(netparser)
+
+    return parser.parse_args()
+
 if __name__ == "__main__":
     import argparser
-    main(argparser.parser().parse_args())
+    main(parse_args())
