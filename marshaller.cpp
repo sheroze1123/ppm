@@ -46,10 +46,12 @@ Marshaller::~Marshaller() {
 }
 
 void Marshaller::marshal(const bool* valid, const double *positions) {
-    // TODO: fix
     for (int i = 0; i < N_p_; ++i) {
-        f_ << positions[2*i    ] << " "
-           << positions[2*i + 1];
+        if (valid[i]) {
+            f_ << positions[2*i] << " " << positions[2*i + 1] << std::endl;
+        } else {
+            f_ << "-1 -1" << std::endl;
+        }
         f_.flush();
     }
     ++n_;
