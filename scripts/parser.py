@@ -3,6 +3,8 @@ Classes which parse marshalled data. Some parsers read data from files. Others
 read over the network. All parsers share the same interface.
 """
 
+import socket
+
 class Parser(object):
     def __init__(self):
         self.n_ = 0       # number of time steps in particle simulation
@@ -39,9 +41,9 @@ class Parser(object):
         """
         raise NotImplementedError("next not implemented in interface")
 
-class FileParser(Parser):
-    def __init__(self, filename):
-        self.f_ = open(filename, "r")
+class RawFileParser(Parser):
+    def __init__(self, f):
+        self.f_ = f
         self.n_ = int(self.f_.readline())
         self.L_ = float(self.f_.readline())
         self.N_ = int(self.f_.readline())
@@ -63,10 +65,33 @@ class FileParser(Parser):
             # read.
             return self.last_
 
+class FileParser(Parser):
+    def __init__(self, filename):
+        self.p_ = RawFileParser(open(filename, "r"))
+        self.n_ = self.p_.n
+        self.L_ = self.p_.L
+        self.N_ = self.p_.N
+        self.N_p_ = self.p_.N_p
+        self.masses_ = self.p_.masses
+        self.last_ = None
+
+    def next(self):
+        return self.p_.next()
 
 class NetParser(Parser):
     def __init__(self, host, port):
-        raise NotImplementedError("NetParser not yet implemented")
+        self.sock_ = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.sock_.connect((host, port))
+        self.f_ = self.sock_.makefile()
+        self.p_ = RawFileParser(self.f_)
+        self.n_ = self.p_.n
+        self.L_ = self.p_.L
+        self.N_ = self.p_.N
+        self.N_p_ = self.p_.N_p
+        self.masses_ = self.p_.masses
+        self.last_ = None
 
     def next(self):
-        raise NotImplementedError("NetParser not yet implemented")
+        self.f_.write("g\r\n")
+        self.f_.flush()
+        return self.p_.next()
