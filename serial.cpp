@@ -33,6 +33,8 @@ void random_particle_initialization(int N_p, double* p_pos, double* p_vel, doubl
     }
 }
 
+// Given the graviational potential (phi), compute the graviational acceleration
+// at each mesh point using finite difference.
 void compute_accelerations(int N, double* acc_x, double* acc_y, double* phi) {
     for (int j=1; j<N-1; j++) {
         for (int i=1; i<N-1; i++) {
@@ -54,6 +56,7 @@ void compute_accelerations(int N, double* acc_x, double* acc_y, double* phi) {
     }
 }
 
+// Perform a time step update of particle positions and velocities.
 void update_particles(int N_p, int N, double* particle_pos, double* particle_vel, bool* particle_valid, 
         double* a_x, double* a_y, double delta_t, double delta_d, double L) {
 
@@ -76,6 +79,7 @@ void update_particles(int N_p, int N, double* particle_pos, double* particle_vel
     }
 }
 
+// Compute the mass density at grid points (rho) using Nearest-Grid Point method
 void compute_rho(int N_p, int N, double *rho, double* particle_mass, double* particle_pos, 
         bool* particle_valid, double delta_d) {
 
@@ -96,6 +100,8 @@ void compute_rho(int N_p, int N, double *rho, double* particle_mass, double* par
     }
 }
 
+// Compute the frequency domain representation of gravitational potential 
+// using the frequency domain representation of mass density.
 void compute_phi_k(int N, double L, fftw_complex* rho_k) {
     
     double n_i, n_j, kx_i, ky_j, k_sq, mult;
