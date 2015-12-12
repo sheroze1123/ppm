@@ -1,3 +1,4 @@
+#include <getopt.h>
 #include <cmath>
 #include <complex.h>
 #include <fftw3.h>
@@ -13,11 +14,38 @@ using namespace std;
 
 const double G = 6.6748 * 10e-11; //TODO: Scale everything by G
 
-int main() {
+const char* usage =
+    "serial -- Serial N-body simulation using a particle-mesh method\n"
+    "Flags:\n"
+    "  - n -- number of grid points of the mesh\n"
+    "  - p -- number of particles\n"
+    "  - l -- side length of simulation\n"
+    "  - t -- time step (0.1)\n";
+
+int main(int argc, char** argv) {
     // INITIALIZATION ////////////////////////////
 
     int N=128, N_p = 300;
     double L = 100.0;
+    double delta_t = 0.1;
+
+    // Option processing
+    extern char* optarg;
+    const char* optstring = "hp:n:l:t:";
+    int c;
+    while ((c = getopt(argc, argv, optstring)) != -1) {
+        switch (c) {
+        case 'h':
+            fprintf(stderr, "%s", usage);
+            return -1;
+        case 'n': N = atoi(optarg); break;
+        case 'p': N_p = atoi(optarg); break;
+        case 'l': L = atof(optarg);  break;
+        case 't': delta_t = atof(optarg);  break;
+        }
+    }
+    double delta_d = L/N;
+
     double *rho = (double*) malloc (N * N * sizeof(double));
     double *phi = (double*) malloc (N * N * sizeof(double));
     double *a_x = (double*) malloc (N * N * sizeof(double));
@@ -26,8 +54,6 @@ int main() {
     double *particle_pos = (double*) malloc (N_p * 2 * sizeof(double));
     double *particle_vel = (double*) malloc (N_p * 2 * sizeof(double));
     double *particle_mass = (double*) malloc (N_p * sizeof(double));
-    double delta_t = 0.1;
-    double delta_d = L/N;
 
     random_device rd;
     mt19937 gen(rd());
@@ -48,7 +74,6 @@ int main() {
     fftw_plan phi_plan =  fftw_plan_dft_c2r_2d(N, N, rho_k, phi, FFTW_ESTIMATE);
 
     // TIME STEP ////////////////////////////////
-
     double time = 0.0;
     for (int t=1; t<1000; t++) {
 
@@ -125,6 +150,7 @@ int main() {
             particle_pos[2*i] += particle_vel[2*i] * delta_t;
             particle_pos[2*i+1] += particle_vel[2*i+1] * delta_t;
 
+            // TODO: Particles out of bounds handling
             if (particle_pos[2*i] < 0.0) particle_pos[2*i] += L;
             if (particle_pos[2*i] > L) particle_pos[2*i] -= L;
             if (particle_pos[2*i+1] < 0.0) particle_pos[2*i+1] += L;
