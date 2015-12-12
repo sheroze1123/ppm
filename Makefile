@@ -10,6 +10,8 @@ OMP_SOURCES=ppm_omp.cpp
 OMP_EXECUTABLE=ppm_omp
 OMP_CFLAGS=-std=c++11 -O3 -openmp
 OMP_LDFLAGS=-lfftw3_omp -lfftw3 -lm
+OMP_LIB=-Lfftw/lib
+OMP_INC=-Ifftw/include
 
 all: $(SOURCES) $(OBJECTS) $(SERIAL_EXECUTABLE)
 
@@ -17,7 +19,7 @@ $(SERIAL_EXECUTABLE): $(SOURCES) $(OBJECTS)
 	$(CC) $(SOURCES) $(OBJECTS) $(LIB) $(INC) $(LDFLAGS) $(CFLAGS) -o $@
 
 $(OMP_EXECUTABLE): $(OMP_SOURCES) $(OBJECTS)
-	$(CC) $(OMP_SOURCES) $(OBJECTS) $(LIB) $(INC) $(OMP_LDFLAGS) $(OMP_CFLAGS) -o $@
+	$(CC) $(OMP_SOURCES) $(OBJECTS) $(OMP_LIB) $(OMP_INC) $(OMP_LDFLAGS) $(OMP_CFLAGS) -o $@
 
 %.o: %.cpp
 	$(CC) -c $(LIB) $(INC) $(LDFLAGS) $(CFLAGS) $<

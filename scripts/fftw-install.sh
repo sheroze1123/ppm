@@ -26,7 +26,7 @@ main() {
     # Configure and build code
     mkdir -p "$installdir"
     cd "$fftwname"
-    ./configure --prefix="$installdir"
+    ./configure --prefix="$installdir" --enable-openmp "CC=icpc"
     make
     make install
 }

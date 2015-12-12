@@ -147,7 +147,6 @@ int main(int argc, char** argv) {
 
     int error_code = fftw_init_threads();
     if (error_code != 0) {
-        cout << "Exit" << endl;
 		exit( EXIT_FAILURE );
     }
 
