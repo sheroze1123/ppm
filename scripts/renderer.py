@@ -4,7 +4,8 @@ def render(positions, masses, max_mass, a):
     # TODO: handle masses
     for (x, y) in positions:
         try:
-            a[x, y] = 255
+            if (x, y) != (-1, -1):
+                a[x, y] = 255
         except IndexError as e:
             # TODO: make this impossible
             print e

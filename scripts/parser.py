@@ -55,7 +55,7 @@ class RawFileParser(Parser):
         try:
             positions = []
             for _ in range(self.N_p):
-                x, y, _, _ = [float(_) for _ in self.f_.readline().split()]
+                x, y = [float(_) for _ in self.f_.readline().split()]
                 positions.append((x, y))
             self.last_ = positions
             return self.last_
