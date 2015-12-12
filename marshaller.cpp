@@ -45,12 +45,11 @@ Marshaller::~Marshaller() {
     f_ << n << std::endl;
 }
 
-void Marshaller::marshal(const double *position, const double *velocity) {
+void Marshaller::marshal(const bool* valid, const double *positions) {
+    // TODO: fix
     for (int i = 0; i < N_p_; ++i) {
-        f_ << position[2*i    ] << " "
-           << position[2*i + 1] << " "
-           << velocity[2*i    ] << " "
-           << velocity[2*i + 1] << std::endl;
+        f_ << positions[2*i    ] << " "
+           << positions[2*i + 1];
         f_.flush();
     }
     ++n_;

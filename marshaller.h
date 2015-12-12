@@ -22,7 +22,7 @@ class Marshaller {
 
     // Write the position and velocity of all N_p particles to the file managed
     // by this Marshaller.
-    void marshal(const double *position, const double *velocity);
+    void marshal(const bool *valid, const double *positions);
 
   private:
     std::ofstream f_;

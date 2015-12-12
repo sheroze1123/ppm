@@ -67,8 +67,8 @@ int main(int argc, char** argv) {
         particle_mass[i]    = mass_dis(gen);
     }
 
-    Marshaller marshaller("particles.txt", L, N, N_p, particle_mass);
-    marshaller.marshal(particle_pos, particle_vel);
+    // Marshaller marshaller("particles.txt", L, N, N_p, particle_mass);
+    // marshaller.marshal(NULL [>TODO<], particle_pos);
 
     fftw_plan rho_plan =  fftw_plan_dft_r2c_2d(N, N, rho, rho_k, FFTW_ESTIMATE);
     fftw_plan phi_plan =  fftw_plan_dft_c2r_2d(N, N, rho_k, phi, FFTW_ESTIMATE);
@@ -156,7 +156,7 @@ int main(int argc, char** argv) {
             if (particle_pos[2*i+1] < 0.0) particle_pos[2*i+1] += L;
             if (particle_pos[2*i+1] > L) particle_pos[2*i+1] -= L;
         }
-        marshaller.marshal(particle_pos, particle_vel);
+        // marshaller.marshal(NULL /* TODO */, particle_pos);
     }
 
 
