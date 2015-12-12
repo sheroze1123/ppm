@@ -178,7 +178,10 @@ int main(int argc, char** argv) {
     fftw_plan phi_plan =  fftw_plan_dft_c2r_2d(N, N, rho_k, phi, FFTW_MEASURE);
 
     // TIME STEP ////////////////////////////////
+    double average_time_ms = 0.0;
+
     for (int t=1; t<1000; t++) {
+        auto t_start = chrono::high_resolution_clock::now();
 
         compute_rho(N_p, N, rho, particle_mass, particle_pos, particle_valid, delta_d);
 
@@ -194,9 +197,14 @@ int main(int argc, char** argv) {
 
         update_particles(N_p, N, particle_pos, particle_vel, particle_valid, a_x, a_y, delta_t, delta_d, L);
 
+        auto t_end = chrono::high_resolution_clock::now();
+        int time_ms = chrono::duration_cast<chrono::milliseconds>(t_end-t_start).count();
+        average_time_ms = ((t-1) * average_time_ms + time_ms)/(double)t;
+
         marshaller.marshal(particle_valid, particle_pos);
     }
 
+    cout << "Average time per step in milliseconds: " << average_time_ms << endl;
 
     fftw_destroy_plan(rho_plan);
     fftw_destroy_plan(phi_plan);
