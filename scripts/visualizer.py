@@ -1,70 +1,21 @@
+from parser import FileParser
 from random import randint
+from renderer import Renderer
 import argparse
 import math
 import moviepy.editor as mpy
 import numpy as np
 
-# Marshaller text file parser.
-class Parser(object):
-    def __init__(self, filename):
-        self.last = None                  # the last set of data read
-        self.f = open(filename, "r")      # underlying file
-        self.n = int(self.f.readline())   # number of time steps
-        self.L = float(self.f.readline()) # side length of simulation
-        self.N = int(self.f.readline())   # side length of grid points
-        self.N_p = int(self.f.readline()) # number of particles
-        self.masses = [float(self.f.readline()) for _ in range(self.N_p)]
-
-    def parse(self):
-        """
-        Parses the next set of (positions, velocities) from the underlying
-        file. If the end of the file is reached, then the last valid data is
-        returned.
-        """
-        try:
-            positions = []
-            velocities = []
-            for _ in range(self.N_p):
-                x, y, vx, vy = [float(_) for _ in self.f.readline().split()]
-                positions.append((x, y))
-                velocities.append((vx, vy))
-            self.last = (positions, velocities)
-            return self.last
-        except ValueError:
-            # A ValueError is raised when we try to read off the end of the
-            # file. We catch this exception and return the last valid data
-            # read.
-            return self.last
-
-def render(points, masses, mass, a):
-    """TODO: rewrite for moviepy."""
-    for ((x, y), m) in zip(points, masses):
-        try:
-            a[x,y] = 255
-        except IndexError as e:
-            # TODO: make this impossible
-            print e
-
 def main(args):
-    parser = Parser(args.filename)
+    parser = FileParser(args.filename)
+    renderer = Renderer(args.pixels, args.mass, parser)
+
     fps = args.fps                    # frames per second
     frames = parser.n                 # number of mp4 frames
     duration = float(frames) / fps    # duration of mp4 in seconds
     nparticles = parser.N_p + 1       # number of particles
-    pixels = args.pixels              # height and width of mp4 in pixels
-    a = np.zeros((pixels, pixels, 3)) # black image
 
-    def make_frame(t):
-        def scale(x):
-            return int(x * float(pixels) / parser.L)
-
-        (pos, _) = parser.parse()
-        pos = [(scale(x), scale(y)) for (x, y) in pos]
-        a[:] = 0
-        render(pos, parser.masses, args.mass, a)
-        return a
-
-    clip = mpy.VideoClip(make_frame, duration=duration)
+    clip = mpy.VideoClip(lambda _: renderer.next(), duration=duration)
     clip.write_videofile("particles.mp4", fps=fps)
 
 def parse_args():
