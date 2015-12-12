@@ -146,8 +146,9 @@ int main(int argc, char** argv) {
     double delta_t = 0.1;
 
     int error_code = fftw_init_threads();
-    if (error_code != 0) {
-		exit( EXIT_FAILURE );
+    if (error_code == 0) {
+        cout << "Error initializing FFTW threads. Exiting..." << endl;
+        exit( EXIT_FAILURE );
     }
 
     // Option processing
