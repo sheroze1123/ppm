@@ -44,7 +44,7 @@ void compute_accelerations(int N, double* acc_x, double* acc_y, double* phi) {
             acc_y[j*N + i] = (phi[(j-1)*N + i] -  phi[(j+1)*N + i])/(2*N*N);
         }
     }
-    
+
     // Left-right edges
     for (int j=0; j<N; j++) {
         acc_x[j*N] = -phi[j*N + 1]/(2*N*N);
@@ -59,7 +59,7 @@ void compute_accelerations(int N, double* acc_x, double* acc_y, double* phi) {
 }
 
 // Perform a time step update of particle positions and velocities.
-void update_particles(int N_p, int N, double* particle_pos, double* particle_vel, bool* particle_valid, 
+void update_particles(int N_p, int N, double* particle_pos, double* particle_vel, bool* particle_valid,
         double* a_x, double* a_y, double delta_t, double delta_d, double L) {
 
     int ind_x, ind_y;
@@ -72,9 +72,9 @@ void update_particles(int N_p, int N, double* particle_pos, double* particle_vel
             particle_pos[2*i] += particle_vel[2*i] * delta_t;
             particle_pos[2*i+1] += particle_vel[2*i+1] * delta_t;
 
-            if ((particle_pos[2*i] < 0.0) || (particle_pos[2*i] > L) 
+            if ((particle_pos[2*i] < 0.0) || (particle_pos[2*i] > L)
                 || (particle_pos[2*i+1] < 0.0) ||  (particle_pos[2*i+1] > L)) {
-                
+
                 particle_valid[i] = false;
             }
         }
@@ -82,7 +82,7 @@ void update_particles(int N_p, int N, double* particle_pos, double* particle_vel
 }
 
 // Compute the mass density at grid points (rho) using Nearest-Grid Point method
-void compute_rho(int N_p, int N, double *rho, double* particle_mass, double* particle_pos, 
+void compute_rho(int N_p, int N, double *rho, double* particle_mass, double* particle_pos,
         bool* particle_valid, double delta_d) {
 
     for (int i=0; i<N*N; i++) {
@@ -102,10 +102,10 @@ void compute_rho(int N_p, int N, double *rho, double* particle_mass, double* par
     }
 }
 
-// Compute the frequency domain representation of gravitational potential 
+// Compute the frequency domain representation of gravitational potential
 // using the frequency domain representation of mass density.
 void compute_phi_k(int N, double L, fftw_complex* rho_k) {
-    
+
     double n_i, n_j, kx_i, ky_j, k_sq, mult;
     for (int j=0; j<N; j++) {
 
@@ -139,7 +139,7 @@ const char* usage =
     "  - t -- time step (0.1)\n"
     "  - s -- number of time steps (1000)\n";
 
-void strong_scaling(int t_steps, double* particle_pos, double* particle_vel, double* particle_mass, 
+void strong_scaling(int t_steps, double* particle_pos, double* particle_vel, double* particle_mass,
         bool* particle_valid, int N_p, int N, double L, double* a_x, double* a_y, double* rho, double* phi,
         fftw_complex* rho_k, double delta_d, double delta_t) {
 
@@ -171,7 +171,7 @@ void strong_scaling(int t_steps, double* particle_pos, double* particle_vel, dou
 
             // TODO: Scaling delta_t
 
-            compute_accelerations(N, a_x, a_y, phi); 
+            compute_accelerations(N, a_x, a_y, phi);
 
             update_particles(N_p, N, particle_pos, particle_vel, particle_valid, a_x, a_y, delta_t, delta_d, L);
 
@@ -182,7 +182,7 @@ void strong_scaling(int t_steps, double* particle_pos, double* particle_vel, dou
         fftw_destroy_plan(rho_plan);
         fftw_destroy_plan(phi_plan);
         fprintf(fp, "%d, %f\n", i, (t_threadrun / (double)t_steps));
-    } 
+    }
     fclose(fp);
 }
 
@@ -251,7 +251,7 @@ int main(int argc, char** argv) {
 
         // TODO: Scaling delta_t
 
-        compute_accelerations(N, a_x, a_y, phi); 
+        compute_accelerations(N, a_x, a_y, phi);
 
         update_particles(N_p, N, particle_pos, particle_vel, particle_valid, a_x, a_y, delta_t, delta_d, L);
 
@@ -263,7 +263,7 @@ int main(int argc, char** argv) {
 
     cout << "Average time per step in milliseconds: " << average_time_ms/t_steps << endl;
 
-    strong_scaling(t_steps, particle_pos, particle_vel, particle_mass, particle_valid, N_p, N, 
+    strong_scaling(t_steps, particle_pos, particle_vel, particle_mass, particle_valid, N_p, N,
             L, a_x, a_y, rho, phi, rho_k, delta_d, delta_t);
 
     fftw_destroy_plan(rho_plan);
