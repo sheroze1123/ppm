@@ -221,7 +221,7 @@ int main(int argc, char** argv) {
     double *phi = (double*) malloc (N * N * sizeof(double));
     double *a_x = (double*) malloc (N * N * sizeof(double));
     double *a_y = (double*) malloc (N * N * sizeof(double));
-    bool *particle_valid  = (bool*) malloc (N * N * sizeof(double));
+    bool *particle_valid  = (bool*) malloc (N_p * sizeof(bool));
     double *particle_pos  = (double*) malloc (N_p * 2 * sizeof(double));
     double *particle_vel  = (double*) malloc (N_p * 2 * sizeof(double));
     double *particle_mass = (double*) malloc (N_p * sizeof(double));
