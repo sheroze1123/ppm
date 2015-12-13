@@ -21,7 +21,7 @@ void random_particle_initialization(int N_p, double* p_pos, double* p_vel, doubl
 
     random_device rd;
     mt19937 gen(rd());
-    double pos_min = 40.0, pos_max = 60.0, mass_min = 0.1, mass_max = 3.0;
+    double pos_min = 30.0, pos_max = 70.0, mass_min = 0.1, mass_max = 3.0;
     uniform_real_distribution<> pos_dis(pos_min, pos_max);
     uniform_real_distribution<> mass_dis(mass_min, mass_max);
 
@@ -228,8 +228,8 @@ int main(int argc, char** argv) {
     fftw_complex *rho_k   = (fftw_complex*) fftw_malloc (N * N * sizeof(fftw_complex));
 
     random_particle_initialization(N_p, particle_pos, particle_vel, particle_mass, particle_valid);
-    // Marshaller marshaller("particles.txt", L, N, N_p, particle_mass);
-    // marshaller.marshal(particle_valid, particle_pos);
+    Marshaller marshaller("particles.txt", L, N, N_p, particle_mass);
+    marshaller.marshal(particle_valid, particle_pos);
 
     fftw_plan_with_nthreads(omp_get_max_threads());
     fftw_plan rho_plan =  fftw_plan_dft_r2c_2d(N, N, rho, rho_k, FFTW_MEASURE);
@@ -258,13 +258,13 @@ int main(int argc, char** argv) {
         double t_end = omp_get_wtime();
         average_time_ms += (t_end - t_start);
 
-        // marshaller.marshal(particle_valid, particle_pos);
+        marshaller.marshal(particle_valid, particle_pos);
     }
 
     cout << "Average time per step in milliseconds: " << average_time_ms/t_steps << endl;
 
-    strong_scaling(t_steps, particle_pos, particle_vel, particle_mass, particle_valid, N_p, N,
-            L, a_x, a_y, rho, phi, rho_k, delta_d, delta_t);
+    // strong_scaling(t_steps, particle_pos, particle_vel, particle_mass, particle_valid, N_p, N,
+            // L, a_x, a_y, rho, phi, rho_k, delta_d, delta_t);
 
     fftw_destroy_plan(rho_plan);
     fftw_destroy_plan(phi_plan);
