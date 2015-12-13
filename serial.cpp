@@ -172,17 +172,20 @@ int main(int argc, char** argv) {
     fftw_complex *rho_k   = (fftw_complex*) fftw_malloc (N * N * sizeof(fftw_complex));
 
     random_particle_initialization(N_p, particle_pos, particle_vel, particle_mass, particle_valid);
+
+#ifdef MARSHAL
     Marshaller marshaller("particles.txt", L, N, N_p, particle_mass);
     marshaller.marshal(particle_valid, particle_pos);
+#endif
 
     fftw_plan rho_plan =  fftw_plan_dft_r2c_2d(N, N, rho, rho_k, FFTW_MEASURE);
     fftw_plan phi_plan =  fftw_plan_dft_c2r_2d(N, N, rho_k, phi, FFTW_MEASURE);
 
     // TIME STEP ////////////////////////////////
-    double average_time_ms = 0.0;
+    const int T = 1000;
+    auto t_start = chrono::high_resolution_clock::now();
 
-    for (int t=1; t<1000; t++) {
-        auto t_start = chrono::high_resolution_clock::now();
+    for (int t=1; t<T; t++) {
 
         compute_rho(N_p, N, rho, particle_mass, particle_pos, particle_valid, delta_d);
 
@@ -198,13 +201,14 @@ int main(int argc, char** argv) {
 
         update_particles(N_p, N, particle_pos, particle_vel, particle_valid, a_x, a_y, delta_t, delta_d, L);
 
-        auto t_end = chrono::high_resolution_clock::now();
-        int time_ms = chrono::duration_cast<chrono::milliseconds>(t_end-t_start).count();
-        average_time_ms = ((t-1) * average_time_ms + time_ms)/(double)t;
-
+#ifdef MARSHAL
         marshaller.marshal(particle_valid, particle_pos);
+#endif
     }
 
+    auto t_end = chrono::high_resolution_clock::now();
+    double total_time_ns = chrono::duration_cast<chrono::nanoseconds>(t_end-t_start).count();
+    double average_time_ms = total_time_ns / (T * 1e6);
     cout << "Average time per step in milliseconds: " << average_time_ms << endl;
 
     fftw_destroy_plan(rho_plan);
