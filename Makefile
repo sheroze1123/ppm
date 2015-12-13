@@ -3,18 +3,31 @@ CC=icpc
 SERIAL_EXECUTABLE=serial
 SOURCES=serial.cpp
 CFLAGS=-std=c++11 -O3 -Wall -Wextra -Werror
+OPTFLAGS = \
+	-O3 \
+	-no-prec-div \
+	-qopt-report=5 \
+	-qopt-report-phase=vec \
+	-ipo \
+	-xCORE-AVX2 \
+	-restrict \
+
 LDFLAGS=-lfftw3
 LIB=-L/opt/local/lib -Lfftw/lib
 INC=-I/opt/local/include -Ifftw/include
-FLAGS=$(LIB) $(INC) $(LDFLAGS) $(CFLAGS)
+FLAGS=$(LIB) $(INC) $(LDFLAGS) $(CFLAGS) $(OPTFLAGS)
+
+OPT_EXECUTABLE=serial_opt
+OPT_SOURCES=serial_opt.cpp
 
 OMP_EXECUTABLE=ppm_omp
 OMP_SOURCES=ppm_omp.cpp
 OMP_CFLAGS=$(CFLAGS) -openmp
+OMP_OPTFLAGS=$(OPTFLAGS)
 OMP_LDFLAGS=-lfftw3_omp -lfftw3 -lm
 OMP_LIB=-Lfftw/lib
 OMP_INC=-Ifftw/include
-OMP_FLAGS=$(OMP_LIB) $(OMP_INC) $(OMP_LDFLAGS) $(OMP_CFLAGS)
+OMP_FLAGS=$(OMP_LIB) $(OMP_INC) $(OMP_LDFLAGS) $(OMP_CFLAGS) $(OMP_OPTFLAGS)
 
 OBJECTS = marshaller.o
 
@@ -30,17 +43,20 @@ else
 MARSHAL_FLAG =
 endif
 
-all: $(SOURCES) $(OBJECTS) $(SERIAL_EXECUTABLE) $(OMP_EXECUTABLE)
+all: $(SOURCES) $(OBJECTS) $(SERIAL_EXECUTABLE) $(OPT_EXECUTABLE) $(OMP_EXECUTABLE)
 
 ## Building
 $(SERIAL_EXECUTABLE): $(SOURCES) $(OBJECTS)
-	$(CC) $(SOURCES) $(OBJECTS) $(FLAGS) $(MARSHAL_FLAG) -o $@
+	$(CC) $^ $(FLAGS) $(MARSHAL_FLAG) -o $@
+
+$(OPT_EXECUTABLE): $(OPT_SOURCES) $(OBJECTS)
+	$(CC) $^ $(FLAGS) $(MARSHAL_FLAG) -o $@
 
 $(OMP_EXECUTABLE): $(OMP_SOURCES) $(OBJECTS)
-	$(CC) $(OMP_SOURCES) $(OBJECTS) $(OMP_FLAGS) $(MARSHAL_FLAG) -o $@
+	$(CC) $^ $(OMP_FLAGS) $(MARSHAL_FLAG) -o $@
 
 %.o: %.cpp
-	$(CC) -c $< $(LIB) $(INC) $(LDFLAGS) $(CFLAGS)
+	$(CC) -c $< $(FLAGS)
 
 ## Miscellaneous
 # watch the status of your qsubbed jobs in reverse chronological order
@@ -57,5 +73,7 @@ clean:
 	rm -f *.csv
 	rm -f $(OBJECTS)
 	rm -f $(SERIAL_EXECUTABLE)
+	rm -f $(OPT_EXECUTABLE)
 	rm -f $(OMP_EXECUTABLE)
 	rm -f *.o[0-9][0-9][0-9][0-9][0-9]
+	rm -f *.optrpt

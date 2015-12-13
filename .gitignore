@@ -6,8 +6,12 @@
 *.tar.gz
 fftw*/
 serial
+serial_opt
+ppm_omp
 particles.txt
 *.o[0-9][0-9][0-9][0-9][0-9]
+*.optrpt
+r[0-9][0-9][0-9]hs
 
 # pip
 bin/
@@ -119,5 +123,3 @@ target/
 Session.vim
 .netrwhist
 *~
-
-ppm_omp

@@ -1,0 +1,10 @@
+#!/bin/sh -l
+
+#PBS -l nodes=1:ppn=24
+#PBS -l walltime=0:30:00
+#PBS -N serial_opt
+#PBS -j oe
+
+module load cs5220
+cd $PBS_O_WORKDIR
+./serial_opt -n 256 -p 200
