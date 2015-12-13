@@ -18,6 +18,7 @@ OBJECTS = marshaller.o
 
 all: $(SOURCES) $(OBJECTS) $(SERIAL_EXECUTABLE) $(OMP_EXECUTABLE)
 
+## Building
 $(SERIAL_EXECUTABLE): $(SOURCES) $(OBJECTS)
 	$(CC) $(SOURCES) $(OBJECTS) $(LIB) $(INC) $(LDFLAGS) $(CFLAGS) -o $@
 
@@ -27,6 +28,17 @@ $(OMP_EXECUTABLE): $(OMP_SOURCES) $(OBJECTS)
 %.o: %.cpp
 	$(CC) -c $< $(LIB) $(INC) $(LDFLAGS) $(CFLAGS)
 
+## Miscellaneous
+# watch the status of your qsubbed jobs in reverse chronological order
+.PHONY: watch
+watch:
+	watch -d -n 1 'qstat | tac'
+
+# http://blog.jgc.org/2015/04/the-one-line-you-should-add-to-every.html
+print-%:
+	@echo $*=$($*)
+
+## Cleaning
 clean:
 	rm -f *.csv
 	rm -f $(OBJECTS)
