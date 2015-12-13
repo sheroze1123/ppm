@@ -1,5 +1,14 @@
 # Parallel Particle Mesh applied to N-body simulations
 
+## Building ##
+Our particle simulators depend on the FFTW discrete Fourier transform library.
+To download, build, and install the library, simply run the following command
+in the root `ppm` directory.
+
+```
+./scripts/fftw-install.sh
+```
+
 ## Visualization ##
 This repository contains two ways to visualize particle simulations:
 
