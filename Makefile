@@ -29,3 +29,4 @@ clean:
 	rm -f $(OBJECTS)
 	rm -f $(SERIAL_EXECUTABLE)
 	rm -f $(OMP_EXECUTABLE)
+	rm -f *.o[0-9][0-9][0-9][0-9][0-9]
