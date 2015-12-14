@@ -14,6 +14,8 @@
 \usepackage{subcaption}
 \usepackage{titlepic}
 
+\newcommand{\nbody}{$N$-body}
+
 \definecolor{mygray}{rgb}{0.5,0.5,0.5}
 \renewcommand\arraystretch{2}
 \raggedbottom
@@ -53,7 +55,7 @@
 {numbers=none}
 
 \title{Final Project Report\\~\\
-	\large Parallel Particle-Mesh Methods Applied to the N-body Problem}
+	\large Parallel Particle-Mesh Methods Applied to the \nbody{} Problem}
 \author{Michael Whittaker (mjw297)\\Sheroze Sheriffdeen (mss385)}
 \titlepic{\includegraphics[width=0.7\textwidth]{./particles/9.png}}
 \maketitle
@@ -62,27 +64,27 @@
 %\begin{exercises}
 %\item[]
 \chapter{Introduction}
-This final project explores parallel particle mesh methods applied to the collision-less n-body problem in a shared memory programming model.
+This final project explores parallel particle mesh methods applied to the collision-less \nbody{} problem in a shared memory programming model.
 
-The n-body system is a correlated dynamical system where each element can have a mass, radius, velocity, position and acceleration and each element is under the influence of a physical force, in our case, Newtonian gravity.
+The \nbody{} system is a correlated dynamical system where each element can have a mass, radius, velocity, position and acceleration and each element is under the influence of a physical force, in our case, Newtonian gravity.
 
-For the general n-body problem with $n > 2$, barring selected configurations, the system cannot be solved analytically. To solve a system with $n > 2$, we create numerical models to approximate the evolution of the system with advancing time. Chapter~\ref{chap:models} introduces the physical and numerical models that enable us to simulate the behavior of bodies under the influence of gravity and discusses the performance and accuracy tradeoffs of the models.
+For the general \nbody{} problem with $n > 2$, barring selected configurations, the system cannot be solved analytically. To solve a system with $n > 2$, we create numerical models to approximate the evolution of the system with advancing time. Chapter~\ref{chap:models} introduces the physical and numerical models that enable us to simulate the behavior of bodies under the influence of gravity and discusses the performance and accuracy tradeoffs of the models.
 
 Chapter~\ref{chap:impl} documents the implementation process of the simulation. The description and usage of the numerical libraries employed and the data marshaling and animation process.
 
 Chapter~\ref{chap:perf} evaluates the performance of the system. The chapter analyzes the time profiles of the serial implementation and the parallel implementations, the strong and weak scaling properties of the parallel system and performance scaling with the number of particles and grid points.
 
-Chapter~\ref{chap:sim} discusses a specific application of the n-body simulator and the results of advancing a system of a large number of particles with time. This chapter introduces the correspondence between the simulation scales and the physical system and contains plots of the system evolution.
+Chapter~\ref{chap:sim} discusses a specific application of the \nbody{} simulator and the results of advancing a system of a large number of particles with time. This chapter introduces the correspondence between the simulation scales and the physical system and contains plots of the system evolution.
 
 In conclusion, Chapter~\ref{chap:conc} mentions possible future work on the simulation and advanced numerical methods and parallelization schemes to further improve performance.
 
 
 \chapter{Model Theory} \label{chap:models}
 
-To simulate the N-body problem, we have to employ models that enable us to track the attributes of the bodies of the system as we step forward in time. This section describes two such models and comments on their accuracy and performance tradeoffs.
+To simulate the \nbody{} problem, we have to employ models that enable us to track the attributes of the bodies of the system as we step forward in time. This section describes two such models and comments on their accuracy and performance tradeoffs.
 
 \section{Particle-Particle Model} \label{sec:pp}
-In class, we explored the three body problem, a specific case of the n-body particle-particle model. At each time step of the system, the velocity, position and acceleration attributes of an element need to be updated according to the following set of equations.
+In class, we explored the three body problem, a specific case of the \nbody{} particle-particle model. At each time step of the system, the velocity, position and acceleration attributes of an element need to be updated according to the following set of equations.
 \begin{align}
 	\dfrac{\vec{v_i}}{dt} &= \dfrac{\vec{F}_i}{m_i} = G \sum_{j \neq i} m_j \dfrac{\vec{x}_j - \vec{x}_i}{\vert \vec{x}_j - \vec{x}_i \vert^3} \\
 	\dfrac{\vec{x}_i}{dt} &= \vec{v}_i
@@ -254,7 +256,7 @@ Since we perform this FFT operation for multiple time steps, FFTW offers an opti
 
 \section{Marshalling and Animations}
 
-To visualize the N-body simulation we marshal particle position data at each time step (implemented in \texttt{marshaller.cpp}) and use MoviePy \cite{moviepy} to create an MP4 representation of the simulation. Further information can be found in \url{https://github.com/sheroze1123/ppm} in \texttt{./scripts/mp4.py}
+To visualize the \nbody{} simulation we marshal particle position data at each time step (implemented in \texttt{marshaller.cpp}) and use MoviePy \cite{moviepy} to create an MP4 representation of the simulation. Further information can be found in \url{https://github.com/sheroze1123/ppm} in \texttt{./scripts/mp4.py}
 
 \chapter{Performance} \label{chap:perf}
 
@@ -270,7 +272,7 @@ To visualize the N-body simulation we marshal particle position data at each tim
 
 // I left the OpenMP intro here. You can leave it and just talk about the design decisions or we can get rid of it and go straight to design.
 
-OpenMP (Open Multi-Processing) is an Application Programming Interface (API) that supports shared memory programming. The n-body simulation using the particle mesh method decouples the particle attribute updates so that each particle's velocity and position can be independently updated using the shared resource, the array that holds the gravitational potential $\phi$.
+OpenMP (Open Multi-Processing) is an Application Programming Interface (API) that supports shared memory programming. The \nbody{} simulation using the particle mesh method decouples the particle attribute updates so that each particle's velocity and position can be independently updated using the shared resource, the array that holds the gravitational potential $\phi$.
 
 The following example that updates the acceleration values in the $x$ direction highlights some of the useful directives in OpenMP.
 
@@ -307,7 +309,7 @@ for (int j=0; j<N; j++) {
 
 \chapter{Simulation Results} \label{chap:sim}
 
-To see the N-body simulation in action, we model a distribution of bodies with a mean mass of one solar mass around a massive object at the center.
+To see the \nbody{} simulation in action, we model a distribution of bodies with a mean mass of one solar mass around a massive object at the center.
 
 \section{Conversion Units}
 
@@ -443,7 +445,7 @@ A better approximation for mass assignments to cells than the NGP scheme discuss
 
 The biggest shortcoming of the Particle-Mesh method is the low resolution of forces computed when particles are near each other. This arises from the regular discretization scheme and is proportional to the cell width $\triangle d$. To overcome this shortcoming, a possible numerical model is the P3M model. \cite{ngp} The Particle-Particle/Particle-Mesh model refines the mesh method by computing the pair-wise force interaction between particles if the distance between particles are below a certain threshold. P4M method is a parallel variant of the P3M and improves on the performance. \cite{p4m}
 
-To scale the n-body simulation to large values, a smarter scheme is needed that is able to distribute the computation across multiple computers. OpenMP, due to its shared memory programming model, does not provide this ability to scale. MPI (Message Passing Interface), is a programming model that enables us to perform computations in parallel on separate processors that can span multiple machines. FFTW offers an MPI variant of the FFT computation that can be used to explore the distributed computation model. \cite{fftw_mpi}
+To scale the \nbody{} simulation to large values, a smarter scheme is needed that is able to distribute the computation across multiple computers. OpenMP, due to its shared memory programming model, does not provide this ability to scale. MPI (Message Passing Interface), is a programming model that enables us to perform computations in parallel on separate processors that can span multiple machines. FFTW offers an MPI variant of the FFT computation that can be used to explore the distributed computation model. \cite{fftw_mpi}
 
 Finally, to improve the viewing experience of the simulation, we can invert the data generation process where a graphical user interface can poll simulation data in real time from a data server. The initial attempt at this server-client structure is documented in the Github page for the CS5220 final project under \texttt{scripts/fileserver.py} \cite{git}
 
@@ -485,7 +487,7 @@ P. Brieu, A. Evrard. (2000). \textit{P4M: A parallel version of P3M}. In New Ast
 \textit{Distributed-memory FFTW with MPI}. (n.d.). Retrieved December 14, 2015, from \url{http://fftw.org/doc/Distributed_002dmemory-FFTW-with-MPI.html}
 
 \bibitem{git}
-S. Sheriffdeen, M. Whittaker, (n.d.). \textit{Parallel Particle Mesh applied to N-body simulations}. Retrieved December 14, 2015, from https://github.com/sheroze1123/ppm
+S. Sheriffdeen, M. Whittaker, (n.d.). \textit{Parallel Particle Mesh applied to \nbody{} simulations}. Retrieved December 14, 2015, from https://github.com/sheroze1123/ppm
 
 \bibitem{vect}
 Intel\textregistered  Xeon Phi\texttrademark Coprocessor - the Architecture. (n.d.). Retrieved December 14, 2015, from https://software.intel.com/en-us/articles/intel-xeon-phi-coprocessor-codename-knights-corner
@@ -494,7 +496,7 @@ Intel\textregistered  Xeon Phi\texttrademark Coprocessor - the Architecture. (n.
 B. Barney (n.d.). \textit{OpenMP Tutorial}. Retrieved December 14, 2015, from https://computing.llnl.gov/tutorials/openMP/
 
 \bibitem{astroparticle}
-\textit{Solving the collisionless Boltzmann equation using N-body simulations}. (n.d.). Retrieved December 14, 2015, from http://www.mi.infn.it/isapp04/Moore/notes2.pdf
+\textit{Solving the collisionless Boltzmann equation using \nbody{} simulations}. (n.d.). Retrieved December 14, 2015, from http://www.mi.infn.it/isapp04/Moore/notes2.pdf
 
 \bibitem{simd}
 G. Levand (n.d.). \textit{Chapter 2 Basics of SIMD Programming}. Retrieved December 14, 2015, from https://www.kernel.org/pub/linux/kernel/people/geoff/cell/ps3-linux-docs/CellProgrammingTutorial/BasicsOfSIMDProgramming.html
