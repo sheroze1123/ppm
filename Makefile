@@ -10,7 +10,7 @@ OPTFLAGS = \
 	-qopt-report-phase=vec \
 	-ipo \
 	-restrict \
-	# -xCORE-AVX2 \
+	-xCORE-AVX2 \
 
 LDFLAGS=-lfftw3
 LIB=-L/opt/local/lib -Lfftw/lib
