@@ -14,8 +14,21 @@
 
 using namespace std;
 
-// const double G = 6.6748 * 10e-11; //TODO: Scale everything by G
 const double G_scaled = 39.5; // Time in years, distances in AU, mass in solar masses
+
+void debug_initialization(int N_p, double* p_pos, double* p_vel, double* p_mass, double L) {
+    p_pos[0] = L/2;
+    p_pos[1] = L/2;
+    p_vel[0] = 0.0;
+    p_vel[1] = 0.0;
+    p_mass[0] = 1000.0;
+
+    p_pos[2] = 2*L/3;
+    p_pos[3] = L/2;
+    p_vel[2] = 0.0;
+    p_vel[3] = sqrt(G_scaled * 1000 * (6 / L));
+    p_mass[1] = 0.001;
+}
 
 // Distance from Sun to Pluto at its most distant, 1 AU
 // Radius of Earth 6380km -> 4e-5 AU
@@ -147,9 +160,9 @@ void update_particles(int N_p, int N, double* particle_pos, double* particle_vel
 
         // Applying periodic boundary conditions
         if (particle_pos[2*i] < 0.0) particle_pos[2*i]     = fmod(particle_pos[2*i], L) + L;
-        if (particle_pos[2*i] > L) particle_pos[2*i]       = fmod(particle_pos[2*i], L) - L;
+        if (particle_pos[2*i] > L) particle_pos[2*i]       = fmod(particle_pos[2*i], L);
         if (particle_pos[2*i+1] < 0.0) particle_pos[2*i+1] = fmod(particle_pos[2*i+1], L) + L;
-        if (particle_pos[2*i+1] > L) particle_pos[2*i+1]   = fmod(particle_pos[2*i+1],L) - L;
+        if (particle_pos[2*i+1] > L) particle_pos[2*i+1]   = fmod(particle_pos[2*i+1],L);
     }
 }
 
@@ -240,11 +253,18 @@ int main(int argc, char** argv) {
     }
 
     if(debug) {
-        G=1.0;
-        N=128;
-        N_p = 100;
-        L = 100.0;
-        delta_t = 0.1;
+        // G=1.0;
+        // N=128;
+        // N_p = 100;
+        // L = 100.0;
+        // delta_t = 0.1;
+
+        L = 60.0;
+        delta_t = 0.0005;
+        G = G_scaled;
+        N=1024;
+        N_p = 2; 
+        T=300;
     }
 
     double delta_d = L/N;
@@ -259,7 +279,8 @@ int main(int argc, char** argv) {
     fftw_complex *rho_k   = (fftw_complex*) fftw_malloc (N * N * sizeof(fftw_complex));
 
     if (debug) {
-        random_particle_initialization(N_p, particle_pos, particle_vel, particle_mass, L);
+        // random_particle_initialization(N_p, particle_pos, particle_vel, particle_mass, L);
+        debug_initialization(N_p, particle_pos, particle_vel, particle_mass, L);
     } else {
         solar_sys_initialization(N_p, particle_pos, particle_vel, particle_mass, L);
     }
