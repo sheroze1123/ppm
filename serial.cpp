@@ -14,14 +14,82 @@
 
 using namespace std;
 
-const double G = 6.6748 * 10e-11; //TODO: Scale everything by G
+// const double G = 6.6748 * 10e-11; //TODO: Scale everything by G
+const double G_scaled = 39.5; // Time in years, distances in AU, mass in solar masses
+
+// Distance from Sun to Pluto at its most distant, 1 AU
+// Radius of Earth 6380km -> 4e-5 AU
+// Distance from Earth to Moon -> 1e-3 AU
+// Ideal L -> 12.0 AU (Covers up to Saturn)
+// Ideal N -> 1000 due to computational cost
+// Ideal delta_d -> 12/1000AU -> 1.8 million km
+void solar_sys_initialization(int N_p, double* p_pos, double* p_vel, double* p_mass, double L) {
+
+    // Random number generator
+    random_device rd;
+    mt19937 gen(rd());
+
+    // Mass distribution is a Poisson distribution with a mean of 1/10 of Earth
+    // double mass_mean = 3.0e-7;
+    double mass_mean = 1.0;
+    poisson_distribution<> mass_dis(mass_mean);
+
+    // Mean velocity of Earth 6.324 AU/year
+    double vel_mean = 10.0;
+    double vel_sigma = 2;
+    poisson_distribution<> vel_dis(vel_mean);
+
+    // Initial position distribution is a Gaussian centered at (L/2, L/2)
+    double r_mean = L/2;
+    double r_sigma = 2; //TODO: Figure out best distribution
+    double x, y, r;
+    normal_distribution<> gauss(r_mean, r_sigma);
+
+    for (int i=0; i<N_p; i++) {
+
+        p_mass[i]    = mass_dis(gen);
+
+        x = -1.0;
+        y = -1.0;
+        while (x < 0.0 || x > L) {
+            x = gauss(gen);
+        }
+        while (y < 0.0 || y > L) {
+            y = gauss(gen);
+        }
+        p_pos[2*i]   = x;
+        p_pos[2*i+1] = y;
+        r = sqrt(x*x + y*y);
+        // cout << "Particle position: (" << p_pos[2*i] << " , " << p_pos[2*i+1] << ")" <<  endl;
+
+        // s -> y value centered about L/2
+        // t -> x value centered about L/2
+        double s = y - L/2;
+        double t = x - L/2;
+        double denom = sqrt(s*s + t*t);
+
+        // double v = vel_dis(gen);
+        double v = sqrt(G_scaled * 1000 / r); 
+
+        p_vel[2*i]   = -v * s / denom;
+        p_vel[2*i+1] = v * t / denom;
+        // p_vel[2*i]   = 0;
+        // p_vel[2*i+1] = 0;
+    }
+
+    p_mass[0] = 1000.0;
+    p_pos[0] = L/2;
+    p_pos[1] = L/2;
+    p_vel[0] = 0;
+    p_vel[1] = 0;
+}
 
 // Initialized the given particles to with random positions and masses but with zero initial velocity.
-void random_particle_initialization(int N_p, double* p_pos, double* p_vel, double* p_mass) {
+void random_particle_initialization(int N_p, double* p_pos, double* p_vel, double* p_mass, double L) {
 
     random_device rd;
     mt19937 gen(rd());
-    double pos_min = 40.0, pos_max = 60.0, mass_min = 0.1, mass_max = 3.0;
+    double pos_min = L * 0.4, pos_max = L * 0.6, mass_min = 0.1, mass_max = 3.0;
     uniform_real_distribution<> pos_dis(pos_min, pos_max);
     uniform_real_distribution<> mass_dis(mass_min, mass_max);
 
@@ -81,10 +149,10 @@ void update_particles(int N_p, int N, double* particle_pos, double* particle_vel
         particle_pos[2*i+1] += particle_vel[2*i+1] * delta_t;
 
         // Applying periodic boundary conditions
-        if (particle_pos[2*i] < 0.0) particle_pos[2*i] += L;
-        if (particle_pos[2*i] > L) particle_pos[2*i] -= L;
-        if (particle_pos[2*i+1] < 0.0) particle_pos[2*i+1] += L;
-        if (particle_pos[2*i+1] > L) particle_pos[2*i+1] -= L;
+        if (particle_pos[2*i] < 0.0) particle_pos[2*i]     = fmod(particle_pos[2*i], L) + L;
+        if (particle_pos[2*i] > L) particle_pos[2*i]       = fmod(particle_pos[2*i], L) - L;
+        if (particle_pos[2*i+1] < 0.0) particle_pos[2*i+1] = fmod(particle_pos[2*i+1], L) + L;
+        if (particle_pos[2*i+1] > L) particle_pos[2*i+1]   = fmod(particle_pos[2*i+1],L) - L;
     }
 }
 
@@ -111,7 +179,7 @@ void compute_rho(int N_p, int N, double *rho, double* particle_mass, double* par
 
 // Compute the frequency domain representation of gravitational potential
 // using the frequency domain representation of mass density.
-void compute_phi_k(int N, double L, fftw_complex* rho_k) {
+void compute_phi_k(int N, double L, fftw_complex* rho_k, double G) {
 
     double n_i, n_j, kx_i, ky_j, k_sq, scaling_factor;
 
@@ -127,7 +195,7 @@ void compute_phi_k(int N, double L, fftw_complex* rho_k) {
             kx_i = n_i * 2 * M_PI / L;      // Spatial frequency in x
 
             k_sq = kx_i * kx_i + ky_j * ky_j;
-            scaling_factor = 4 * M_PI / k_sq;
+            scaling_factor = 4 * M_PI * G / k_sq;
 
             rho_k[j*N+i][0] *= (scaling_factor);
             rho_k[j*N+i][1] *= (scaling_factor);
@@ -138,23 +206,27 @@ void compute_phi_k(int N, double L, fftw_complex* rho_k) {
 const char* usage =
     "serial -- Serial N-body simulation using a particle-mesh method\n"
     "Flags:\n"
-    "  - n -- number of grid points of the mesh\n"
-    "  - p -- number of particles\n"
-    "  - l -- side length of simulation\n"
-    "  - t -- time step (0.1)\n";
+    "  - n -- number of grid points of the mesh (1024)\n"
+    "  - p -- number of particles (100)\n"
+    "  - l -- side length of simulation (60.0AU)\n"
+    "  - t -- time step (0.0001)\n"
+    "  - d -- debug mode (random particles initialization)\n"
+    "  - s -- total time steps (100)\n";
 
 
 int main(int argc, char** argv) {
 
     // INITIALIZATION ////////////////////////////
 
-    int N=512, N_p = 100;
-    double L = 100.0;
-    double delta_t = 0.1;
+    bool debug = false;
+    int N=1024, N_p = 3000, T=400;
+    double L = 60.0;
+    double delta_t = 0.0001;
+    double G = G_scaled;
 
     // Option processing
     extern char* optarg;
-    const char* optstring = "hp:n:l:t:";
+    const char* optstring = "hp:n:l:t:d:s:";
     int c;
     while ((c = getopt(argc, argv, optstring)) != -1) {
         switch (c) {
@@ -165,7 +237,17 @@ int main(int argc, char** argv) {
         case 'p': N_p = atoi(optarg); break;
         case 'l': L = atof(optarg);  break;
         case 't': delta_t = atof(optarg);  break;
+        case 'd': debug = atoi(optarg); break;
+        case 's': T = atoi(optarg); break;
         }
+    }
+
+    if(debug) {
+        G=1.0;
+        N=128;
+        N_p = 100;
+        L = 100.0;
+        delta_t = 0.1;
     }
 
     double delta_d = L/N;
@@ -179,7 +261,11 @@ int main(int argc, char** argv) {
     double *particle_mass = (double*) malloc (N_p * sizeof(double));
     fftw_complex *rho_k   = (fftw_complex*) fftw_malloc (N * N * sizeof(fftw_complex));
 
-    random_particle_initialization(N_p, particle_pos, particle_vel, particle_mass);
+    if (debug) {
+        random_particle_initialization(N_p, particle_pos, particle_vel, particle_mass, L);
+    } else {
+        solar_sys_initialization(N_p, particle_pos, particle_vel, particle_mass, L);
+    }
 
 #ifdef MARSHAL
     Marshaller marshaller("particles.txt", L, N, N_p, particle_mass);
@@ -190,7 +276,6 @@ int main(int argc, char** argv) {
     fftw_plan phi_plan =  fftw_plan_dft_c2r_2d(N, N, rho_k, phi, FFTW_MEASURE);
 
     // TIME STEP ////////////////////////////////
-    const int T = 1000;
     auto t_start = chrono::high_resolution_clock::now();
 
     for (int t=1; t<T; t++) {
@@ -199,7 +284,7 @@ int main(int argc, char** argv) {
 
         fftw_execute(rho_plan);
 
-        compute_phi_k(N, L, rho_k);
+        compute_phi_k(N, L, rho_k, G);
 
         fftw_execute(phi_plan);
 
