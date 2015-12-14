@@ -47,7 +47,7 @@ void solar_sys_initialization(int N_p, double* p_pos, double* p_vel, double* p_m
 
     for (int i=0; i<N_p; i++) {
 
-        p_mass[i]    = mass_dis(gen);
+        p_mass[i] = mass_dis(gen);
 
         x = -1.0;
         y = -1.0;
@@ -60,7 +60,6 @@ void solar_sys_initialization(int N_p, double* p_pos, double* p_vel, double* p_m
         p_pos[2*i]   = x;
         p_pos[2*i+1] = y;
         r = sqrt(x*x + y*y);
-        // cout << "Particle position: (" << p_pos[2*i] << " , " << p_pos[2*i+1] << ")" <<  endl;
 
         // s -> y value centered about L/2
         // t -> x value centered about L/2
@@ -72,9 +71,7 @@ void solar_sys_initialization(int N_p, double* p_pos, double* p_vel, double* p_m
         double v = sqrt(G_scaled * 1000 / r); 
 
         p_vel[2*i]   = -v * s / denom;
-        p_vel[2*i+1] = v * t / denom;
-        // p_vel[2*i]   = 0;
-        // p_vel[2*i+1] = 0;
+        p_vel[2*i+1] =  v * t / denom;
     }
 
     p_mass[0] = 1000.0;
