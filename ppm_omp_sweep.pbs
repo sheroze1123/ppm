@@ -1,0 +1,13 @@
+#!/bin/sh -l
+
+#PBS -l nodes=1:ppn=24
+#PBS -l walltime=0:30:00
+#PBS -N omp_sweep
+#PBS -j oe
+
+module load cs5220
+cd $PBS_O_WORKDIR
+echo "L N N_p dt T num_threads total_time ave_time"
+for (( o = 1; o <= 24; ++o )); do
+    ./ppm_omp -o $o -n 1024 -p 5000
+done
