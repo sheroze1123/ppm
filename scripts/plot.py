@@ -69,55 +69,70 @@ def time_vs_num_threads(data):
     programs = domain(data, "name")
     num_threads = domain(data, "num_threads")
 
-    plt.figure()
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
 
     for program in programs:
         for N in [128, 256, 512, 1024, 2048]:
             predicate = {"name": program, "N":N, "N_p":6400}
             times = get(data, predicate, ("num_threads", num_threads), "ave_time")
-            plt.plot(num_threads, times, label="{} (N = {})".format(program, N))
+            ax.plot(num_threads, times, label="{} (N = {})".format(program, N))
 
     plt.xlabel("number of threads, N_p=6400")
     plt.ylabel("average time per time step (ms)")
     plt.grid()
-    plt.legend(loc="best", fancybox=True, shadow=True)
-    plt.savefig("time_vs_num_threads.pdf")
+    handles, labels = ax.get_legend_handles_labels()
+    lgd = ax.legend(handles, labels, fancybox=True, shadow=True,
+                    loc='center left', bbox_to_anchor=(1, 0.5))
+    fig.savefig("time_vs_num_threads.pdf",
+                bbox_extra_artists=(lgd,),
+                bbox_inches='tight')
 
 def time_vs_N(data):
     programs = domain(data, "name")
     Ns = domain(data, "N")
 
-    plt.figure()
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
 
     for program in programs:
         for t in [1, 2, 4, 12, 24]:
             predicate = {"name": program, "num_threads":t, "N_p":6400}
             times = get(data, predicate, ("N", Ns), "ave_time")
-            plt.plot(Ns, times, label="{} ({} threads)".format(program, t))
+            ax.plot(Ns, times, label="{} ({} threads)".format(program, t))
 
     plt.xlabel("N, N_p=6400")
     plt.ylabel("average time per time step (ms)")
     plt.grid()
-    plt.legend(loc="best", fancybox=True, shadow=True)
-    plt.savefig("time_vs_N.pdf")
+    handles, labels = ax.get_legend_handles_labels()
+    lgd = ax.legend(handles, labels, fancybox=True, shadow=True,
+                    loc='center left', bbox_to_anchor=(1, 0.5))
+    fig.savefig("time_vs_N.pdf",
+                bbox_extra_artists=(lgd,),
+                bbox_inches='tight')
 
 def time_vs_p(data):
     programs = domain(data, "name")
     ps = domain(data, "N_p")
 
-    plt.figure()
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
 
     for program in programs:
         for t in [1, 2, 4, 12, 24]:
             predicate = {"name": program, "N":128, "num_threads": t}
             times = get(data, predicate, ("N_p", ps), "ave_time")
-            plt.plot(ps, times, label="{} ({} threads)".format(program, t))
+            ax.plot(ps, times, label="{} ({} threads)".format(program, t))
 
     plt.xlabel("number of particles, N=128")
     plt.ylabel("average time per time step (ms)")
     plt.grid()
-    plt.legend(loc="best", fancybox=True, shadow=True)
-    plt.savefig("time_vs_p.pdf")
+    handles, labels = ax.get_legend_handles_labels()
+    lgd = ax.legend(handles, labels, fancybox=True, shadow=True,
+                    loc='center left', bbox_to_anchor=(1, 0.5))
+    fig.savefig("time_vs_p.pdf",
+                bbox_extra_artists=(lgd,),
+                bbox_inches='tight')
 
 def main(filenames):
     data = flatten(parse_file(filename) for filename in filenames)
