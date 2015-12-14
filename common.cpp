@@ -134,9 +134,9 @@ void update_particles(int N_p, int N, double delta_t, double delta_d, double L,
         particle_pos[2*i+1] += particle_vel[2*i+1] * delta_t;
 
         // Applying periodic boundary conditions
-        if (particle_pos[2*i] < 0.0) particle_pos[2*i] += L;
-        if (particle_pos[2*i] > L) particle_pos[2*i] -= L;
-        if (particle_pos[2*i+1] < 0.0) particle_pos[2*i+1] += L;
-        if (particle_pos[2*i+1] > L) particle_pos[2*i+1] -= L;
+        if (particle_pos[2*i] < 0.0) particle_pos[2*i]     = fmod(particle_pos[2*i], L) + L;
+        if (particle_pos[2*i] > L) particle_pos[2*i]       = fmod(particle_pos[2*i], L);
+        if (particle_pos[2*i+1] < 0.0) particle_pos[2*i+1] = fmod(particle_pos[2*i+1], L) + L;
+        if (particle_pos[2*i+1] > L) particle_pos[2*i+1]   = fmod(particle_pos[2*i+1],L);
     }
 }
