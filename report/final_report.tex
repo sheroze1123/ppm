@@ -1,20 +1,25 @@
 \documentclass{report}
+\usepackage{algorithmicx}
+\usepackage{algpseudocode}
 \usepackage{amsmath,amssymb,latexsym, mathtools}
-\usepackage{verbatim}
-\usepackage{algorithm}
 \usepackage{changepage}
-\usepackage{listings}
-\usepackage{float}
 \usepackage{color}
-\usepackage{inconsolata}
-\usepackage{parskip}
-\usepackage{url}
 \usepackage{enumerate}
+\usepackage{float}
 \usepackage{geometry}
+\usepackage{inconsolata}
+\usepackage{listings}
+\usepackage{parskip}
 \usepackage{subcaption}
 \usepackage{titlepic}
+\usepackage{url}
+\usepackage{verbatim}
 
 \newcommand{\nbody}{$N$-body}
+\newcommand{\braced}[1]{\left[{#1}\right]}
+\newcommand{\FFTsymbol}{\text{FFT}}
+\newcommand{\FFT}[1]{\FFTsymbol\braced{#1}}
+\newcommand{\invFFT}[1]{\FFTsymbol^{-1}\braced{#1}}
 
 \definecolor{mygray}{rgb}{0.5,0.5,0.5}
 \renewcommand\arraystretch{2}
@@ -64,13 +69,13 @@
 %\begin{exercises}
 %\item[]
 \chapter{Introduction}
-This final project explores parallel particle mesh methods applied to the collision-less \nbody{} problem in a shared memory programming model.
+This final project explores parallel particle-mesh methods applied to the collision-less \nbody{} problem in a shared memory programming model.
 
 The \nbody{} system is a correlated dynamical system where each element can have a mass, radius, velocity, position and acceleration and each element is under the influence of a physical force, in our case, Newtonian gravity.
 
-For the general \nbody{} problem with $n > 2$, barring selected configurations, the system cannot be solved analytically. To solve a system with $n > 2$, we create numerical models to approximate the evolution of the system with advancing time. Chapter~\ref{chap:models} introduces the physical and numerical models that enable us to simulate the behavior of bodies under the influence of gravity and discusses the performance and accuracy tradeoffs of the models.
+For the general \nbody{} problem with $N > 2$, barring selected configurations, the system cannot be solved analytically. To solve a system with $N > 2$, we create numerical models to approximate the evolution of the system with advancing time. Chapter~\ref{chap:models} introduces the physical and numerical models that enable us to simulate the behavior of bodies under the influence of gravity and discusses the performance and accuracy tradeoffs of the models.
 
-Chapter~\ref{chap:impl} documents the implementation process of the simulation. The description and usage of the numerical libraries employed and the data marshaling and animation process.
+Chapter~\ref{chap:impl} documents the implementation process of the simulation. The chapter presents a description and usage of the numerical libraries employed and the data marshaling and animation process.
 
 Chapter~\ref{chap:perf} evaluates the performance of the system. The chapter analyzes the time profiles of the serial implementation and the parallel implementations, the strong and weak scaling properties of the parallel system and performance scaling with the number of particles and grid points.
 
@@ -84,21 +89,21 @@ In conclusion, Chapter~\ref{chap:conc} mentions possible future work on the simu
 To simulate the \nbody{} problem, we have to employ models that enable us to track the attributes of the bodies of the system as we step forward in time. This section describes two such models and comments on their accuracy and performance tradeoffs.
 
 \section{Particle-Particle Model} \label{sec:pp}
-In class, we explored the three body problem, a specific case of the \nbody{} particle-particle model. At each time step of the system, the velocity, position and acceleration attributes of an element need to be updated according to the following set of equations.
+The first model of the \nbody{} problem is a particle-particle model. At each time step of the system, the velocity, position and acceleration attributes of an element need to be updated according to the following set of equations.
 \begin{align}
 	\dfrac{\vec{v_i}}{dt} &= \dfrac{\vec{F}_i}{m_i} = G \sum_{j \neq i} m_j \dfrac{\vec{x}_j - \vec{x}_i}{\vert \vec{x}_j - \vec{x}_i \vert^3} \\
 	\dfrac{\vec{x}_i}{dt} &= \vec{v}_i
 \end{align}
 
 \noindent
-where $m_i$ is the mass of the $i^{\text{th}}$ particle and $G$ is the gravitational constant. Given the acceleration vector acting on a particle, we can then use a time integration scheme to solve the above coupled set of equations. In class, we used the automatic step Runge-Kutta method to update the position and velocity of each particle.
+where $m_i$ is the mass of the $i^{\text{th}}$ particle and $G$ is the gravitational constant. Given the acceleration vector acting on a particle, we can then use a time integration scheme to solve the above coupled set of equations. For example, we could use the automatic step Runge-Kutta method to update the position and velocity of each particle.
 
 Although, this model provides good accuracy, the attributes modeled for a single element depend on every other elements in the system, leading to an algorithmic complexity of $O(n_p^2)$ where $n_p$ is the number of particles modeled by the system.
 
-Therefore, for large number of particles we have to adopt a different model. Therefore, this project does not use the automatic stepsize Runge-Kutta method but further discussion of the method can be found in Chapter 17.2 of Numerical Recipes. \cite{numrecipes}
+Therefore, for large number of particles we have to adopt a different model. Therefore, this project does not use the automatic stepsize Runge-Kutta method but further discussion of the method can be found in Chapter 17.2 of Numerical Recipes \cite{numrecipes}.
 
 \section{Particle-Mesh Model}
-In the particle-mesh approach, we exploit the force-at-a-point formulation and the field equation for the gravitational potential to compute a faster force calculation for the particles at the cost of accuracy. The space of interest is divided into a mesh and each particle is assigned to a mesh point depending on their location. The mesh sampling point defines the center of a cell.
+In the particle-mesh approach, we exploit the force-at-a-point formulation and the field equation for the gravitational potential to compute a faster force calculation for the particles at the cost of accuracy. The space of interest is divided into a mesh and each particle is assigned to a mesh point depending on its location. The mesh sampling point defines the center of a cell.
 
 \begin{figure}[H]
   \centering
@@ -145,48 +150,50 @@ where $\vec{k}$ is the spatial frequency vector.
 The mass density of the system is sampled at the cell centers of the mesh. To relate the masses of particles to the cell centers, a density assignment scheme is needed. The simplest method is the Nearest Grid Point (NGP) scheme.
 
 \begin{equation}
-	\rho_{i,j} = \dfrac{1}{(\triangle d)^2} \sum_{k=1}^{N_p} m_k \,
-	\delta \left(\dfrac{x_k}{\triangle d} - i \right) \delta \left(\dfrac{y_k}{\triangle d} - j \right)
+	\rho_{i,j} = \dfrac{1}{(\Delta d)^2} \sum_{k=1}^{N_p} m_k \,
+	\delta \left(\dfrac{x_k}{\Delta d} - i \right) \delta \left(\dfrac{y_k}{\Delta d} - j \right)
 \end{equation}
 
-where $\rho_{i,j}$ is the mass density at the cell $(i,j)$, $k$ iterates over the particles and $\triangle d$ is the sampling interval in space.
+where $\rho_{i,j}$ is the mass density at the cell $(i,j)$, $k$ iterates over the particles and $\Delta d$ is the sampling interval in space.
 
 The following algorithm describes the 2 dimensional NGP scheme on a square mesh.
 
-\begin{enumerate}
-	\item For each particle $i$,
-	\item $\quad$Find $(m, n)$, the index of the cell center in the mesh.
-	\item $\quad$$\text{cell}_{\rho}(m,n) \leftarrow \text{cell}_{\rho}(m,n) + m_i$
-	\item For each cell center $(m,n)$,
-	\item $\quad$$\text{cell}_{\rho}(m,n) \leftarrow \text{cell}_{\rho}(m,n) / (\triangle d)^2$
-\end{enumerate}
+\begin{algorithmic}
+  \ForAll{particles $i$}
+    \State find $(m, n)$: the index of the cell center in the mesh
+	  \State $\text{cell}_{\rho}(m,n) \gets \text{cell}_{\rho}(m,n) + m_i$
+  \EndFor
+  \ForAll{cell centers $(m, n)$}
+	  \State $\text{cell}_{\rho}(m,n) \leftarrow \text{cell}_{\rho}(m,n) / (\Delta d)^2$
+  \EndFor
+\end{algorithmic}
 
 where $\text{cell}_{\rho}$ holds the mass density at the cell centers.
 
-The NGP scheme provides a fast method to compute the mass distribution of the system since the core operation is a summation that is linear time on the number of particles. The disadvantage of the NGP scheme is that the mass densities are discontinuous.
+The NGP scheme provides a fast method to compute the mass distribution of the system since the core operation is a summation that runs in linear time proportional to the number of particles. The disadvantage of the NGP scheme is that the mass densities are discontinuous.
 
 \subsection{Gravitational Potential and Acceleration}
 To solve for the gravitational potential $\phi$, we obtained equation~\ref{eq:phi_k}. Using the NGP scheme, we obtain the spatial distribution of density. Converting this density distribution to Fourier space, we obtain the relationship,
 
 \begin{align}
-	\phi(\vec{k}) &= \dfrac{ 4 \pi G \cdot \text{FFT}[ \rho(x,y) ]}{k^2}\\
-	\phi(x,y) &= \text{FFT}^{-1} \left[ \dfrac{ 4 \pi G \cdot \text{FFT}[ \rho(x,y) ]}{k^2} \right]\\
+  \phi(\vec{k}) &= \dfrac{ 4 \pi G \cdot \FFT{\rho(x,y)} }{k^2} \\
+  \phi(x,y) &= \invFFT{\dfrac{ 4 \pi G \cdot \FFT{\rho(x,y)}}{k^2}}
 \end{align}
 
-where FFT is the Fast Fourier Transform. \cite{ngp} The implementation details of FFT is described in Section~\ref{sec:fftw}.
+where $\FFTsymbol{}$ is the Fast Fourier Transform \cite{ngp}. The implementation details of $\FFTsymbol{}$ is described in Section~\ref{sec:fftw}.
 
 Then, using equation~\ref{eq:phi_g}, we can solve for the gravitational acceleration at a cell center using the central difference method:
 
 \begin{align}
-	g_x(i,j) &= - \dfrac{\phi(i+1,j) - \phi(i-1, j)}{2 (\triangle d)} \\
-	g_y(i,j) &= - \dfrac{\phi(i,j+1) - \phi(i, j-1)}{2 (\triangle d)}
+	g_x(i,j) &= - \dfrac{\phi(i+1,j) - \phi(i-1, j)}{2 (\Delta d)} \\
+	g_y(i,j) &= - \dfrac{\phi(i,j+1) - \phi(i, j-1)}{2 (\Delta d)}
 \end{align}
 
 The gravitational acceleration of the cell centers can now be associated with the particles in the simulation using the NGP scheme.
 
 \subsection{Particle-Mesh Algorithm Summary}
 
-To summarize the particle-mesh method, the following algorithm describes a single time step:  \cite{csup}
+To summarize the particle-mesh method, the following algorithm describes a single time step: \cite{csup}.
 
 \begin{enumerate}
 	\item Assign mass to cell centers using the NGP scheme.
@@ -201,9 +208,9 @@ To summarize the particle-mesh method, the following algorithm describes a singl
 
 The Particle-Particle model described in Section~\ref{sec:pp} although accurate requires a high computational cost, taking $O(N_p^2)$ time.
 
-The advantage of the Particle-Mesh method is the performance. Updates to the particle attributes occur in $O(N_p)$ time. The slowest step in the method is the computation of the two dimensional Fourier transform which takes $O(N^2 log(N))$ time.
+The advantage of the Particle-Mesh method is the performance. Updates to the particle attributes occur in $O(N_p)$ time. The slowest step in the method is the computation of the two dimensional Fourier transform which takes $O(N^2 \log(N^2))$ time.
 
-The increase in performance comes with an accuracy cost. Using the NGP scheme to compute acceleration on a particle decreases the resolution of the solver and to obtain fairly accurate time integration, the spatial sampling interval should be smaller than the wavelengths of importance in the physical system. Finer mass interpolation schemes such as CIC and mixed schemes are discussed in Hockney and Eastwood's Computer simulation using particles. \cite{csup}
+The increase in performance comes with an accuracy cost. Using the NGP scheme to compute acceleration on a particle decreases the resolution of the solver and to obtain fairly accurate time integration, the spatial sampling interval should be smaller than the wavelengths of importance in the physical system. Finer mass interpolation schemes such as CIC and mixed schemes are discussed in Hockney and Eastwood's Computer simulation using particles \cite{csup}.
 
 \chapter{Implementation Details} \label{chap:impl}
 
@@ -272,7 +279,7 @@ To visualize the \nbody{} simulation we marshal particle position data at each t
 
 // I left the OpenMP intro here. You can leave it and just talk about the design decisions or we can get rid of it and go straight to design.
 
-OpenMP (Open Multi-Processing) is an Application Programming Interface (API) that supports shared memory programming. The \nbody{} simulation using the particle mesh method decouples the particle attribute updates so that each particle's velocity and position can be independently updated using the shared resource, the array that holds the gravitational potential $\phi$.
+OpenMP (Open Multi-Processing) is an Application Programming Interface (API) that supports shared memory programming. The \nbody{} simulation using the particle-mesh method decouples the particle attribute updates so that each particle's velocity and position can be independently updated using the shared resource, the array that holds the gravitational potential $\phi$.
 
 The following example that updates the acceleration values in the $x$ direction highlights some of the useful directives in OpenMP.
 
@@ -313,14 +320,14 @@ To see the \nbody{} simulation in action, we model a distribution of bodies with
 
 \section{Conversion Units}
 
-To scale the floating point numbers of the simulation, we adopt the following conversion units. \cite{conversion}
+To scale the floating point numbers of the simulation, we adopt the following conversion units \cite{conversion}.
 
 \begin{tabular}{| l | l |}
 	\hline
 	Simulation units & Physical units \\ \hline
-	Time unit ($\triangle t$ = 1) & 1 year ($3.15 \times 10^7$ seconds)\\
-	Space unit ($\triangle d$ = 1) & 1 AU ($1.4960 \times 10^{11}$ meters) \\
-	Mass unit ($\triangle m$ = 1) & 1 solar mass ($1.9891 \times 10^{30}$ kilograms) \\ \hline
+	Time unit ($\Delta t$ = 1) & 1 year ($3.15 \times 10^7$ seconds)\\
+	Space unit ($\Delta d$ = 1) & 1 AU ($1.4960 \times 10^{11}$ meters) \\
+	Mass unit ($\Delta m$ = 1) & 1 solar mass ($1.9891 \times 10^{30}$ kilograms) \\ \hline
 \end{tabular}
 
 \section{Initial Conditions}
@@ -379,7 +386,7 @@ Given the initial conditions as described above, with simulation side length of 
      	\fbox{\includegraphics[width=0.95\linewidth]{./particles/4.png}}
 	\caption{Bodies at $t = 7.3$ days, $L=60$AU}
 	\end{subfigure}
-	\caption{Configuration evolution with $\triangle t= 0.86$ hours, 3000 particles, $\mu_m = 1 \times 10^{30}$ kg}
+	\caption{Configuration evolution with $\Delta t= 0.86$ hours, 3000 particles, $\mu_m = 1 \times 10^{30}$ kg}
 	\label{fig:ev0}
 \end{figure}
 
@@ -405,7 +412,7 @@ Given the initial conditions as described above, with simulation side length of 
      	\fbox{\includegraphics[width=0.95\linewidth]{./particles/8.png}}
 	\caption{Bodies at $t = 17.03$ days, $L=60$AU}
 	\end{subfigure}
-	\caption{Configuration evolution with $\triangle t= 0.86$ hours, 3000 particles, $\mu_m = 1 \times 10^{30}$ kg}
+	\caption{Configuration evolution with $\Delta t= 0.86$ hours, 3000 particles, $\mu_m = 1 \times 10^{30}$ kg}
 	\label{fig:ev1}
 \end{figure}
 
@@ -431,7 +438,7 @@ Given the initial conditions as described above, with simulation side length of 
      	\fbox{\includegraphics[width=0.95\linewidth]{./particles/12.png}}
 	\caption{Bodies at $t = 26.76$ days, $L=60$AU}
 	\end{subfigure}
-	\caption{Configuration evolution with $\triangle t= 0.86$ hours, 3000 particles, $\mu_m = 1 \times 10^{30}$ kg}
+	\caption{Configuration evolution with $\Delta t= 0.86$ hours, 3000 particles, $\mu_m = 1 \times 10^{30}$ kg}
 	\label{fig:ev2}
 \end{figure}
 
@@ -441,11 +448,11 @@ Given the initial conditions as described above, with simulation side length of 
 
 To improve the time integration process, future work can be undertaken to automatically scale the time step size to prevent instabilities. A maximum velocity can be enforced on the mesh, proportional to the cell widths, to limit the information propagation rate across the cells and the next time step can be dilated accordingly.
 
-A better approximation for mass assignments to cells than the NGP scheme discussed here is the CIC method or the "cloud-in-cell" method described in Chapter 5-2-3 of Hockney and Eastwood's Computer simulation using particles. \cite{csup} It is costlier in terms of floating point operations per mass assignment run, but provides a more accurate estimate, giving forces continuous in volume. This method considers the closest $2^N$ neighbors where $N$ is the dimensionality of the problem, to assign masses.
+A better approximation for mass assignments to cells than the NGP scheme discussed here is the CIC method or the "cloud-in-cell" method described in Chapter 5-2-3 of Hockney and Eastwood's Computer simulation using particles \cite{csup}. It is costlier in terms of floating point operations per mass assignment run, but provides a more accurate estimate, giving forces continuous in volume. This method considers the closest $2^N$ neighbors where $N$ is the dimensionality of the problem, to assign masses.
 
-The biggest shortcoming of the Particle-Mesh method is the low resolution of forces computed when particles are near each other. This arises from the regular discretization scheme and is proportional to the cell width $\triangle d$. To overcome this shortcoming, a possible numerical model is the P3M model. \cite{ngp} The Particle-Particle/Particle-Mesh model refines the mesh method by computing the pair-wise force interaction between particles if the distance between particles are below a certain threshold. P4M method is a parallel variant of the P3M and improves on the performance. \cite{p4m}
+The biggest shortcoming of the Particle-Mesh method is the low resolution of forces computed when particles are near each other. This arises from the regular discretization scheme and is proportional to the cell width $\Delta d$. To overcome this shortcoming, a possible numerical model is the P3M model \cite{ngp}. The Particle-Particle/Particle-Mesh model refines the mesh method by computing the pair-wise force interaction between particles if the distance between particles are below a certain threshold. P4M method is a parallel variant of the P3M and improves on the performance \cite{p4m}.
 
-To scale the \nbody{} simulation to large values, a smarter scheme is needed that is able to distribute the computation across multiple computers. OpenMP, due to its shared memory programming model, does not provide this ability to scale. MPI (Message Passing Interface), is a programming model that enables us to perform computations in parallel on separate processors that can span multiple machines. FFTW offers an MPI variant of the FFT computation that can be used to explore the distributed computation model. \cite{fftw_mpi}
+To scale the \nbody{} simulation to large values, a smarter scheme is needed that is able to distribute the computation across multiple computers. OpenMP, due to its shared memory programming model, does not provide this ability to scale. MPI (Message Passing Interface), is a programming model that enables us to perform computations in parallel on separate processors that can span multiple machines. FFTW offers an MPI variant of the FFT computation that can be used to explore the distributed computation model \cite{fftw_mpi}.
 
 Finally, to improve the viewing experience of the simulation, we can invert the data generation process where a graphical user interface can poll simulation data in real time from a data server. The initial attempt at this server-client structure is documented in the Github page for the CS5220 final project under \texttt{scripts/fileserver.py} \cite{git}
 
