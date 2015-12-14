@@ -135,8 +135,33 @@ int main(int argc, char** argv) {
     double t_start = omp_get_wtime();
 
     for (int t=1; t<t_steps; t++) {
-        compute_rho(N_p, N, delta_d, rho,
-                    particle_mass, particle_pos);
+        // #pragma omp single
+        // compute_rho(N_p, N, delta_d, rho,
+        //             particle_mass, particle_pos);
+
+        {
+            // Zero-out rho for reuse
+            for (int i = 0; i < N * N; ++i) {
+                rho[i] = 0.0;
+            }
+
+            int ind_x, ind_y, index, mass;
+            #pragma omp parallel for
+            for (int i=0; i<N_p; i++) {
+                ind_x =  floor(particle_pos[2*i]/delta_d);
+                ind_y =  floor(particle_pos[2*i+1]/delta_d);
+                index = ind_y*N + ind_x;
+                mass = particle_mass[i];
+                #pragma omp critical
+                rho[index] += mass;
+            }
+
+            // Scale to represent density
+            double scaling_factor = delta_d * delta_d;
+            for (int i=0; i<N*N; i++) {
+                rho[i] /= scaling_factor;
+            }
+        }
 
         fftw_execute(rho_plan);
 
@@ -148,8 +173,28 @@ int main(int argc, char** argv) {
 
         compute_accelerations(N, a_x, a_y, phi, delta_d);
 
-        update_particles(N_p, N, delta_t, delta_d, L,
-                         particle_pos, particle_vel, a_x, a_y);
+        // #pragma omp single
+        // update_particles(N_p, N, delta_t, delta_d, L,
+                         // particle_pos, particle_vel, a_x, a_y);
+        {
+            int ind_x, ind_y;
+            #pragma omp parallel for
+            for (int i=0; i<N_p; i++) {
+                ind_x =  floor(particle_pos[2*i]/delta_d);
+                ind_y =  floor(particle_pos[2*i+1]/delta_d);
+                particle_vel[2*i] += a_x[ind_y*N + ind_x] * delta_t;
+                particle_vel[2*i+1] += a_y[ind_y*N + ind_x] * delta_t;
+                particle_pos[2*i] += particle_vel[2*i] * delta_t;
+                particle_pos[2*i+1] += particle_vel[2*i+1] * delta_t;
+
+                // Applying periodic boundary conditions
+                if (particle_pos[2*i] < 0.0) particle_pos[2*i]     = fmod(particle_pos[2*i], L) + L;
+                if (particle_pos[2*i] > L) particle_pos[2*i]       = fmod(particle_pos[2*i], L);
+                if (particle_pos[2*i+1] < 0.0) particle_pos[2*i+1] = fmod(particle_pos[2*i+1], L) + L;
+                if (particle_pos[2*i+1] > L) particle_pos[2*i+1]   = fmod(particle_pos[2*i+1],L);
+            }
+        }
+
 #ifdef MARSHAL
         marshaller.marshal(particle_pos);
 #endif
@@ -158,7 +203,7 @@ int main(int argc, char** argv) {
     double total_time_ms = t_end - t_start;
     double average_time_ms = total_time_ms / t_steps;
 
-    cout << "ppm_omp "
+    cout << "ppm_omp_partial "
          << L << " "
          << N << " "
          << N_p << " "
