@@ -21,6 +21,7 @@ const char* usage =
     "  - p -- number of particles\n"
     "  - l -- side length of simulation\n"
     "  - t -- time step (0.1)\n"
+    "  - o -- number of OMP threads (24)\n"
     "  - s -- number of time steps (1000)\n";
 
 void strong_scaling(int t_steps, double* particle_pos, double* particle_vel,
@@ -80,6 +81,7 @@ int main(int argc, char** argv) {
     int N=128, N_p = 300, t_steps=1000;
     double L = 100.0;
     double delta_t = 0.1;
+    int num_threads = 24;
 
     int error_code = fftw_init_threads();
     if (error_code == 0) {
@@ -89,7 +91,7 @@ int main(int argc, char** argv) {
 
     // Option processing
     extern char* optarg;
-    const char* optstring = "hp:n:l:t:s:";
+    const char* optstring = "hp:n:l:t:s:o:";
     int c;
     while ((c = getopt(argc, argv, optstring)) != -1) {
         switch (c) {
@@ -101,6 +103,7 @@ int main(int argc, char** argv) {
         case 's': t_steps = atoi(optarg); break;
         case 'l': L = atof(optarg);  break;
         case 't': delta_t = atof(optarg);  break;
+        case 'o': num_threads = atoi(optarg);  break;
         }
     }
     double delta_d = L/N;
@@ -118,18 +121,19 @@ int main(int argc, char** argv) {
                                    particle_vel, particle_pos,
                                    particle_mass);
 
+#ifdef MARSHAL
     Marshaller marshaller("particles.txt", L, N, N_p, particle_mass);
     marshaller.marshal(particle_pos);
+#endif
 
-    fftw_plan_with_nthreads(omp_get_max_threads());
+    fftw_plan_with_nthreads(num_threads);
     fftw_plan rho_plan =  fftw_plan_dft_r2c_2d(N, N, rho, rho_k, FFTW_MEASURE);
     fftw_plan phi_plan =  fftw_plan_dft_c2r_2d(N, N, rho_k, phi, FFTW_MEASURE);
 
     // TIME STEP ////////////////////////////////
-    double average_time_ms = 0.0;
+    double t_start = omp_get_wtime();
 
-    for (int t=1; t<1000; t++) {
-        double t_start = omp_get_wtime();
+    for (int t=1; t<t_steps; t++) {
 
         compute_rho(N_p, N, delta_d, rho,
                     particle_mass, particle_pos);
@@ -147,13 +151,23 @@ int main(int argc, char** argv) {
         update_particles(N_p, N, delta_t, delta_d, L,
                          particle_pos, particle_vel, a_x, a_y);
 
-        double t_end = omp_get_wtime();
-        average_time_ms += (t_end - t_start);
-
+#ifdef MARSHAL
         marshaller.marshal(particle_pos);
+#endif
     }
+    double t_end = omp_get_wtime();
+    double total_time_ms = t_end - t_start;
+    double average_time_ms = total_time_ms / t_steps;
 
-    cout << "Average time per step in milliseconds: " << average_time_ms/t_steps << endl;
+    cout << L << " "
+         << N << " "
+         << N_p << " "
+         << delta_t << " "
+         << t_steps << " "
+         << num_threads << " "
+         << total_time_ms << " "
+         << average_time_ms << " "
+         << endl;
 
     // strong_scaling(t_steps, particle_pos, particle_vel, particle_mass, N_p, N,
             // L, a_x, a_y, rho, phi, rho_k, delta_d, delta_t);
