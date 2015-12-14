@@ -1,4 +1,5 @@
 import csv
+import itertools
 import sys
 
 import matplotlib.pyplot as plt
@@ -65,20 +66,29 @@ def get(data, predicate, (k, ks), f):
 ################################################################################
 # plotting
 ################################################################################
+def linestyles():
+    colors = "bgrcmyk"
+    patterns = ["-", "--", "-.", ":"]
+    for (p, c) in itertools.cycle(itertools.product(patterns, colors)):
+        yield c + p
+
 def time_vs_num_threads(data):
     programs = domain(data, "name")
     num_threads = domain(data, "num_threads")
 
     fig = plt.figure()
     ax = fig.add_subplot(111)
+    styles = linestyles()
+    N_p = 6400
 
     for program in programs:
         for N in [128, 256, 512, 1024, 2048]:
-            predicate = {"name": program, "N":N, "N_p":6400}
+            predicate = {"name": program, "N":N, "N_p":N_p}
             times = get(data, predicate, ("num_threads", num_threads), "ave_time")
-            ax.plot(num_threads, times, label="{} (N = {})".format(program, N))
+            ax.plot(num_threads, times, next(styles),
+                    label="{} (N = {})".format(program, N))
 
-    plt.xlabel("number of threads, N_p=6400")
+    plt.xlabel("number of threads, N_p={}".format(N_p))
     plt.ylabel("average time per time step (ms)")
     plt.grid()
     handles, labels = ax.get_legend_handles_labels()
@@ -94,14 +104,17 @@ def time_vs_N(data):
 
     fig = plt.figure()
     ax = fig.add_subplot(111)
+    styles = linestyles()
+    N_p = 6400
 
     for program in programs:
         for t in [1, 2, 4, 12, 24]:
-            predicate = {"name": program, "num_threads":t, "N_p":6400}
+            predicate = {"name": program, "num_threads":t, "N_p":N_p}
             times = get(data, predicate, ("N", Ns), "ave_time")
-            ax.plot(Ns, times, label="{} ({} threads)".format(program, t))
+            ax.plot(Ns, times, next(styles),
+                    label="{} ({} threads)".format(program, t))
 
-    plt.xlabel("N, N_p=6400")
+    plt.xlabel("N, N_p={}".format(N_p))
     plt.ylabel("average time per time step (ms)")
     plt.grid()
     handles, labels = ax.get_legend_handles_labels()
@@ -117,14 +130,17 @@ def time_vs_p(data):
 
     fig = plt.figure()
     ax = fig.add_subplot(111)
+    styles = linestyles()
+    N = 2048
 
     for program in programs:
         for t in [1, 2, 4, 12, 24]:
-            predicate = {"name": program, "N":128, "num_threads": t}
+            predicate = {"name": program, "N":N, "num_threads": t}
             times = get(data, predicate, ("N_p", ps), "ave_time")
-            ax.plot(ps, times, label="{} ({} threads)".format(program, t))
+            ax.plot(ps, times, next(styles),
+                    label="{} ({} threads)".format(program, t))
 
-    plt.xlabel("number of particles, N=128")
+    plt.xlabel("number of particles, N={}".format(N))
     plt.ylabel("average time per time step (ms)")
     plt.grid()
     handles, labels = ax.get_legend_handles_labels()
