@@ -50,19 +50,18 @@ int main(int argc, char** argv) {
     double *phi = (double*) _mm_malloc (N * N * sizeof(double), 64);
     double *a_x = (double*) _mm_malloc (N * N * sizeof(double), 64);
     double *a_y = (double*) _mm_malloc (N * N * sizeof(double), 64);
-    bool *particle_valid  = (bool*) _mm_malloc (N_p * sizeof(bool), 64);
     double *particle_pos  = (double*) _mm_malloc (N_p * 2 * sizeof(double), 64);
     double *particle_vel  = (double*) _mm_malloc (N_p * 2 * sizeof(double), 64);
     double *particle_mass = (double*) _mm_malloc (N_p * sizeof(double), 64);
     fftw_complex *rho_k   = (fftw_complex*) fftw_malloc (N * N * sizeof(fftw_complex));
 
     random_particle_initialization(N_p, L,
-                                   particle_vel, particle_valid, particle_pos,
+                                   particle_vel, particle_pos,
                                    particle_mass);
 
 #ifdef MARSHAL
     Marshaller marshaller("particles.txt", L, N, N_p, particle_mass);
-    marshaller.marshal(particle_valid, particle_pos);
+    marshaller.marshal(particle_pos);
 #endif
 
     fftw_plan rho_plan =  fftw_plan_dft_r2c_2d(N, N, rho, rho_k, FFTW_MEASURE);
@@ -75,7 +74,7 @@ int main(int argc, char** argv) {
     for (int t=1; t<T; t++) {
 
         compute_rho(N_p, N, delta_d, rho,
-                    particle_mass, particle_pos, particle_valid);
+                    particle_mass, particle_pos);
 
         fftw_execute(rho_plan);
 
@@ -85,13 +84,13 @@ int main(int argc, char** argv) {
 
         // TODO: Scaling delta_t
 
-        compute_accelerations(N, a_x, a_y, phi);
+        compute_accelerations(N, a_x, a_y, phi, delta_d);
 
         update_particles(N_p, N, delta_t, delta_d, L,
-                         particle_pos, particle_vel, particle_valid, a_x, a_y);
+                         particle_pos, particle_vel, a_x, a_y);
 
 #ifdef MARSHAL
-        marshaller.marshal(particle_valid, particle_pos);
+        marshaller.marshal(particle_pos);
 #endif
     }
 
@@ -108,6 +107,5 @@ int main(int argc, char** argv) {
     _mm_free(rho);
     _mm_free(a_x);
     _mm_free(a_y);
-    _mm_free(particle_valid);
     fftw_free(rho_k);
 }

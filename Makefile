@@ -9,8 +9,8 @@ OPTFLAGS = \
 	-qopt-report=5 \
 	-qopt-report-phase=vec \
 	-ipo \
-	-xCORE-AVX2 \
 	-restrict \
+	# -xCORE-AVX2 \
 
 LDFLAGS=-lfftw3
 LIB=-L/opt/local/lib -Lfftw/lib
@@ -37,11 +37,11 @@ SERIAL_OBJECTS = marshaller.o
 OPT_OBJECTS = $(OBJECTS)
 
 # If you invoke make with no arguments (i.e. `make`), then MARSHAL defaults to
-# false and MARSHAL_FLAG defaults to nothing. If you invoke make like this:
-# `make MARSHAL=true`, then MARSHAL is overwritten and MARSHAL_FLAG is set to
+# true and MARSHAL_FLAG defaults to nothing. If you invoke make like this:
+# `make MARSHAL=false`, then MARSHAL is overwritten and MARSHAL_FLAG is set to
 # `-DMARSHAL`. When the `-DMARSHAL` flag is passed into the compiler, the code
-# performs marshalling; otherwise it doesn't.
-MARSHAL = false
+# does not perform marshalling; otherwise it does.
+MARSHAL = true
 ifeq ($(MARSHAL), true)
 MARSHAL_FLAG = -DMARSHAL
 else

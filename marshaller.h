@@ -25,7 +25,7 @@ class Marshaller {
     // of particle positions; some of the particles are within the L by L
     // simulation space while some are outside of it. The first list specifies
     // which positions are within the space.
-    void marshal(const bool *valid, const double *positions);
+    void marshal(const double *positions);
 
   private:
     std::ofstream f_; // underlying file

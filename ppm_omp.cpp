@@ -24,7 +24,7 @@ const char* usage =
     "  - s -- number of time steps (1000)\n";
 
 void strong_scaling(int t_steps, double* particle_pos, double* particle_vel,
-                    double* particle_mass, bool* particle_valid, int N_p, int N,
+                    double* particle_mass, int N_p, int N,
                     double L, double* a_x, double* a_y, double* rho, double* phi,
                     fftw_complex* rho_k, double delta_d, double delta_t) {
     FILE *fp;
@@ -35,7 +35,7 @@ void strong_scaling(int t_steps, double* particle_pos, double* particle_vel,
     for (i = 1; i <= thread_max; i++) {
         omp_set_num_threads(i);
         random_particle_initialization(N_p, L,
-                                       particle_vel, particle_valid, particle_pos,
+                                       particle_vel, particle_pos,
                                        particle_mass);
 
         fftw_plan_with_nthreads(i);
@@ -48,7 +48,7 @@ void strong_scaling(int t_steps, double* particle_pos, double* particle_vel,
             t_start = omp_get_wtime();
 
             compute_rho(N_p, N, delta_d, rho,
-                        particle_mass, particle_pos, particle_valid);
+                        particle_mass, particle_pos);
 
             fftw_execute(rho_plan);
 
@@ -58,10 +58,10 @@ void strong_scaling(int t_steps, double* particle_pos, double* particle_vel,
 
             // TODO: Scaling delta_t
 
-            compute_accelerations(N, a_x, a_y, phi);
+            compute_accelerations(N, a_x, a_y, phi, delta_d);
 
             update_particles(N_p, N, delta_t, delta_d, L,
-                             particle_pos, particle_vel, particle_valid, a_x, a_y);
+                             particle_pos, particle_vel, a_x, a_y);
 
 
             t_end = omp_get_wtime();
@@ -109,18 +109,17 @@ int main(int argc, char** argv) {
     double *phi = (double*) malloc (N * N * sizeof(double));
     double *a_x = (double*) malloc (N * N * sizeof(double));
     double *a_y = (double*) malloc (N * N * sizeof(double));
-    bool *particle_valid  = (bool*) malloc (N_p * sizeof(bool));
     double *particle_pos  = (double*) malloc (N_p * 2 * sizeof(double));
     double *particle_vel  = (double*) malloc (N_p * 2 * sizeof(double));
     double *particle_mass = (double*) malloc (N_p * sizeof(double));
     fftw_complex *rho_k   = (fftw_complex*) fftw_malloc (N * N * sizeof(fftw_complex));
 
     random_particle_initialization(N_p, L,
-                                   particle_vel, particle_valid, particle_pos,
+                                   particle_vel, particle_pos,
                                    particle_mass);
 
     Marshaller marshaller("particles.txt", L, N, N_p, particle_mass);
-    marshaller.marshal(particle_valid, particle_pos);
+    marshaller.marshal(particle_pos);
 
     fftw_plan_with_nthreads(omp_get_max_threads());
     fftw_plan rho_plan =  fftw_plan_dft_r2c_2d(N, N, rho, rho_k, FFTW_MEASURE);
@@ -133,7 +132,7 @@ int main(int argc, char** argv) {
         double t_start = omp_get_wtime();
 
         compute_rho(N_p, N, delta_d, rho,
-                    particle_mass, particle_pos, particle_valid);
+                    particle_mass, particle_pos);
 
         fftw_execute(rho_plan);
 
@@ -143,20 +142,20 @@ int main(int argc, char** argv) {
 
         // TODO: Scaling delta_t
 
-        compute_accelerations(N, a_x, a_y, phi);
+        compute_accelerations(N, a_x, a_y, phi, delta_d);
 
         update_particles(N_p, N, delta_t, delta_d, L,
-                         particle_pos, particle_vel, particle_valid, a_x, a_y);
+                         particle_pos, particle_vel, a_x, a_y);
 
         double t_end = omp_get_wtime();
         average_time_ms += (t_end - t_start);
 
-        marshaller.marshal(particle_valid, particle_pos);
+        marshaller.marshal(particle_pos);
     }
 
     cout << "Average time per step in milliseconds: " << average_time_ms/t_steps << endl;
 
-    // strong_scaling(t_steps, particle_pos, particle_vel, particle_mass, particle_valid, N_p, N,
+    // strong_scaling(t_steps, particle_pos, particle_vel, particle_mass, N_p, N,
             // L, a_x, a_y, rho, phi, rho_k, delta_d, delta_t);
 
     fftw_destroy_plan(rho_plan);
@@ -167,7 +166,6 @@ int main(int argc, char** argv) {
     free(rho);
     free(a_x);
     free(a_y);
-    free(particle_valid);
     fftw_free(rho_k);
     fftw_cleanup_threads();
 }
