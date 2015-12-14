@@ -6,131 +6,13 @@
 #include <fstream>
 #include <getopt.h>
 #include <iostream>
-#include <random>
 #include <string>
 #include <vector>
 
+#include "common.h"
 #include "marshaller.h"
 
 using namespace std;
-
-const double G = 6.6748 * 10e-11; //TODO: Scale everything by G
-
-// Initialized the given particles to with random positions and masses but with zero initial velocity.
-void random_particle_initialization(int N_p, double* p_pos, double* p_vel, double* p_mass, bool* p_valid) {
-
-    random_device rd;
-    mt19937 gen(rd());
-    double pos_min = 40.0, pos_max = 60.0, mass_min = 0.1, mass_max = 3.0;
-    uniform_real_distribution<> pos_dis(pos_min, pos_max);
-    uniform_real_distribution<> mass_dis(mass_min, mass_max);
-
-    for (int i=0; i<N_p; i++) {
-        p_valid[i] = true;
-        p_pos[2*i]   = pos_dis(gen);
-        p_pos[2*i+1] = pos_dis(gen);
-        p_vel[2*i]   = 0.0;
-        p_vel[2*i+1] = 0.0;
-        p_mass[i]    = mass_dis(gen);
-    }
-}
-
-// Given the graviational potential (phi), compute the graviational acceleration
-// at each mesh point using finite difference.
-void compute_accelerations(int N, double* restrict acc_x,
-                                  double* restrict acc_y,
-                                  const double* restrict phi) {
-    for (int j=1; j<N-1; j++) {
-        for (int i=1; i<N-1; i++) {
-            acc_x[j*N + i] = (phi[j*N + i-1] -  phi[j*N + i+1])/(2*N*N);
-            acc_y[j*N + i] = (phi[(j-1)*N + i] -  phi[(j+1)*N + i])/(2*N*N);
-        }
-    }
-
-    // Left-right edges
-    for (int j=0; j<N; j++) {
-        acc_x[j*N] = -phi[j*N + 1]/(2*N*N);
-        acc_x[j*N+(N-1)] = phi[j*N + N-2]/(2*N*N);
-    }
-
-    // Top-bottom edges
-    for (int i=0; i<N; i++) {
-        acc_x[i] = -phi[N + i]/(2*N*N);
-        acc_x[(N-1)*N + i] = phi[(N-2)*N + i]/(2*N*N);
-    }
-}
-
-// Perform a time step update of particle positions and velocities.
-void update_particles(int N_p, int N, double* particle_pos, double* particle_vel, bool* particle_valid,
-        double* a_x, double* a_y, double delta_t, double delta_d, double L) {
-
-    int ind_x, ind_y;
-    for (int i=0; i<N_p; i++) {
-        if (particle_valid[i]) {
-            ind_x =  floor(particle_pos[2*i]/delta_d);
-            ind_y =  floor(particle_pos[2*i+1]/delta_d);
-            particle_vel[2*i] -= a_x[ind_y*N + ind_x] * delta_t;
-            particle_vel[2*i+1] -= a_y[ind_y*N + ind_x] * delta_t;
-            particle_pos[2*i] += particle_vel[2*i] * delta_t;
-            particle_pos[2*i+1] += particle_vel[2*i+1] * delta_t;
-
-            if ((particle_pos[2*i] < 0.0) || (particle_pos[2*i] > L)
-                || (particle_pos[2*i+1] < 0.0) ||  (particle_pos[2*i+1] > L)) {
-
-                particle_valid[i] = false;
-            }
-        }
-    }
-}
-
-// Compute the mass density at grid points (rho) using Nearest-Grid Point method
-void compute_rho(int N_p, int N, double *rho, double* particle_mass, double* particle_pos,
-        bool* particle_valid, double delta_d) {
-
-    memset(rho, 0, N*N*sizeof(double));
-
-    // NOTE(mjw297): this loop isn't vectorizable due to random access pattern
-    int ind_x, ind_y;
-    for (int i=0; i<N_p; i++) {
-        if (particle_valid[i]) {
-            ind_x =  floor(particle_pos[2*i]/delta_d);
-            ind_y =  floor(particle_pos[2*i+1]/delta_d);
-            rho[ind_y*N + ind_x] += particle_mass[i];
-        }
-    }
-
-    for (int i=0; i<N*N; i++) {
-        rho[i] /= (delta_d * delta_d);
-    }
-}
-
-// Compute the frequency domain representation of gravitational potential
-// using the frequency domain representation of mass density.
-void compute_phi_k(int N, double L, fftw_complex* rho_k) {
-
-    double n_i, n_j, kx_i, ky_j, k_sq, mult;
-    for (int j=0; j<N; j++) {
-
-        if (j >= N/2)  n_j = (j - N); // Negative frequency mapping in y
-        else n_j = j;
-
-        ky_j = n_j * 2 * M_PI / L; // Spatial frequency in y
-
-        for (int i=0; i<N; i++) {
-            if (i==0 && j==0) continue;
-
-            if (i >= N/2)  n_i = (i - N); // Negative frequency mapping in x
-            else n_i = i;
-
-            kx_i = n_i * 2 * M_PI / L; // Spatial frequency in x
-            k_sq = kx_i * kx_i + ky_j * ky_j;
-            mult = 4 * M_PI / k_sq;
-
-            rho_k[j*N+i][0] *= (mult);
-            rho_k[j*N+i][1] *= (mult);
-        }
-    }
-}
 
 const char* usage =
     "serial -- Serial N-body simulation using a particle-mesh method\n"
@@ -174,7 +56,9 @@ int main(int argc, char** argv) {
     double *particle_mass = (double*) _mm_malloc (N_p * sizeof(double), 64);
     fftw_complex *rho_k   = (fftw_complex*) fftw_malloc (N * N * sizeof(fftw_complex));
 
-    random_particle_initialization(N_p, particle_pos, particle_vel, particle_mass, particle_valid);
+    random_particle_initialization(N_p, L,
+                                   particle_vel, particle_valid, particle_pos,
+                                   particle_mass);
 
 #ifdef MARSHAL
     Marshaller marshaller("particles.txt", L, N, N_p, particle_mass);
@@ -190,7 +74,8 @@ int main(int argc, char** argv) {
 
     for (int t=1; t<T; t++) {
 
-        compute_rho(N_p, N, rho, particle_mass, particle_pos, particle_valid, delta_d);
+        compute_rho(N_p, N, delta_d, rho,
+                    particle_mass, particle_pos, particle_valid);
 
         fftw_execute(rho_plan);
 
@@ -202,7 +87,8 @@ int main(int argc, char** argv) {
 
         compute_accelerations(N, a_x, a_y, phi);
 
-        update_particles(N_p, N, particle_pos, particle_vel, particle_valid, a_x, a_y, delta_t, delta_d, L);
+        update_particles(N_p, N, delta_t, delta_d, L,
+                         particle_pos, particle_vel, particle_valid, a_x, a_y);
 
 #ifdef MARSHAL
         marshaller.marshal(particle_valid, particle_pos);

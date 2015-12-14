@@ -29,7 +29,12 @@ OMP_LIB=-Lfftw/lib
 OMP_INC=-Ifftw/include
 OMP_FLAGS=$(OMP_LIB) $(OMP_INC) $(OMP_LDFLAGS) $(OMP_CFLAGS) $(OMP_OPTFLAGS)
 
-OBJECTS = marshaller.o
+OBJECTS = \
+	common.o \
+	marshaller.o \
+
+SERIAL_OBJECTS = marshaller.o
+OPT_OBJECTS = $(OBJECTS)
 
 # If you invoke make with no arguments (i.e. `make`), then MARSHAL defaults to
 # false and MARSHAL_FLAG defaults to nothing. If you invoke make like this:
@@ -46,13 +51,13 @@ endif
 all: $(SOURCES) $(OBJECTS) $(SERIAL_EXECUTABLE) $(OPT_EXECUTABLE) $(OMP_EXECUTABLE)
 
 ## Building
-$(SERIAL_EXECUTABLE): $(SOURCES) $(OBJECTS)
+$(SERIAL_EXECUTABLE): $(SOURCES) $(SERIAL_OBJECTS)
 	$(CC) $^ $(FLAGS) $(MARSHAL_FLAG) -o $@
 
-$(OPT_EXECUTABLE): $(OPT_SOURCES) $(OBJECTS)
+$(OPT_EXECUTABLE): $(OPT_SOURCES) $(OPT_OBJECTS)
 	$(CC) $^ $(FLAGS) $(MARSHAL_FLAG) -o $@
 
-$(OMP_EXECUTABLE): $(OMP_SOURCES) $(OBJECTS)
+$(OMP_EXECUTABLE): $(OMP_SOURCES) $(OPT_OBJECTS)
 	$(CC) $^ $(OMP_FLAGS) $(MARSHAL_FLAG) -o $@
 
 %.o: %.cpp
