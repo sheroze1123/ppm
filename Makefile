@@ -2,7 +2,7 @@ CC=icpc
 
 SERIAL_EXECUTABLE=serial
 SOURCES=serial.cpp
-CFLAGS=-std=c++11 -O3 -Wall -Wextra -Werror
+CFLAGS=-std=c++11 -O3 -Wall -Wextra -Werror -openmp
 OPTFLAGS = \
 	-O3 \
 	-no-prec-div \
@@ -22,7 +22,7 @@ OPT_SOURCES=serial_opt.cpp
 
 OMP_EXECUTABLE=ppm_omp
 OMP_SOURCES=ppm_omp.cpp
-OMP_CFLAGS=$(CFLAGS) -openmp
+OMP_CFLAGS=$(CFLAGS)
 OMP_OPTFLAGS=$(OPTFLAGS)
 OMP_LDFLAGS=-lfftw3_omp -lfftw3 -lm
 OMP_LIB=-Lfftw/lib
