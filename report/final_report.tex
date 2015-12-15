@@ -15,8 +15,11 @@
 \usepackage{url}
 \usepackage{verbatim}
 
-\newcommand{\nbody}{$N$-body}
 \newcommand{\braced}[1]{\left[{#1}\right]}
+\newcommand{\cpp}{C\texttt{++}}
+\newcommand{\nbody}{$N$-body}
+
+% Fast Fourier Transform
 \newcommand{\FFTsymbol}{\text{FFT}}
 \newcommand{\FFT}[1]{\FFTsymbol\braced{#1}}
 \newcommand{\invFFT}[1]{\FFTsymbol^{-1}\braced{#1}}
@@ -98,7 +101,7 @@ The first model of the \nbody{} problem is a particle-particle model. At each ti
 \noindent
 where $m_i$ is the mass of the $i^{\text{th}}$ particle and $G$ is the gravitational constant. Given the acceleration vector acting on a particle, we can then use a time integration scheme to solve the above coupled set of equations. For example, we could use the automatic step Runge-Kutta method to update the position and velocity of each particle.
 
-Although, this model provides good accuracy, the attributes modeled for a single element depend on every other elements in the system, leading to an algorithmic complexity of $O(n_p^2)$ where $n_p$ is the number of particles modeled by the system.
+Although, this model provides good accuracy, the attributes modeled for a single element depend on every other elements in the system, leading to an algorithmic complexity of $O(N_p^2)$ where $N_p$ is the number of particles modeled by the system.
 
 Therefore, for large number of particles we have to adopt a different model. Therefore, this project does not use the automatic stepsize Runge-Kutta method but further discussion of the method can be found in Chapter 17.2 of Numerical Recipes \cite{numrecipes}.
 
@@ -214,6 +217,8 @@ The increase in performance comes with an accuracy cost. Using the NGP scheme to
 
 \chapter{Implementation Details} \label{chap:impl}
 
+We have implemented an \nbody{} simulator using the Particle-Mesh model in \cpp{} and a simulation visualizer in Python. In this chapter, we discuss the implementation of both the simulator and visualizer.
+
 \section{FFTW} \label{sec:fftw}
 
 To compute the Fourier transform required in the Particle-Mesh method, we use the Fast Fourier Transform, obtained from the FFTW package. (www.fftw.org, the "Fastest Fourier Transform in the West" \cite{fftw}). In FFTW, the Discrete Fourier Transform of a complex one dimensional array $X$ computes $Y$ where,
@@ -241,7 +246,7 @@ if (particle_pos[2*i+1] > L) particle_pos[2*i+1]   = fmod(particle_pos[2*i+1],L)
 \end{lstlisting}
 
 \subsection{FFTW Usage}
-In the solution implementation $\texttt{serial.cpp}$, to compute the Fourier space representation of the density distribution $\rho$, we perform a forward transform.
+In the solution implementation, to compute the Fourier space representation of the density distribution $\rho$, we perform a forward transform.
 
 \begin{lstlisting}[aboveskip=11pt,belowskip=-10pt]
 fftw_plan rho_plan =  fftw_plan_dft_r2c_2d(N, N, rho, rho_k, FFTW_MEASURE);
@@ -263,7 +268,19 @@ Since we perform this FFT operation for multiple time steps, FFTW offers an opti
 
 \section{Marshalling and Animations}
 
-To visualize the \nbody{} simulation we marshal particle position data at each time step (implemented in \texttt{marshaller.cpp}) and use MoviePy \cite{moviepy} to create an MP4 representation of the simulation. Further information can be found in \url{https://github.com/sheroze1123/ppm} in \texttt{./scripts/mp4.py}
+Our simulator iteratively updates the positions of the particles being simulated. After each iteration, it writes the particles' positions to a text file: a process known as marshalling. In addition to the positions, our simulator also marshals the size of the particle mesh ($N$), the number of particles ($N_p$), the number of iterations, and the masses of each particle. The marshalling logic is implemented in \texttt{marshaller.cpp}. Also note that our simulator only marshals data when debugging and is elided via conditional compilation otherwise.
+
+The marshalled files are then parsed and animated by one of two visualizers.
+The first, \texttt{scripts/mp4.py}, uses the MoviePy library \cite{moviepy} to
+construct an MP4 visualization of the simulation. The second,
+\texttt{scripts/gui.py}, uses the TkInter GUI library \cite{tkinter} to
+animate the simulation in a GUI, without producing any output media files. Both visualizers also accept a set of command line options to modify the behavior of the simulation. For example, the \texttt{-f} flag sets the frames per second of the animation, and the \texttt{-p} flag sets the resolution of the animation.
+
+Simulations with a large number of time steps or a large number of particles
+can produce very large marshalled files. To alleviate the burden of storing and
+transferring large files, the GUI visualizer can read and animate marshalled
+data from the network rather than from a file. This allows us to animate
+simulations without ever marshalling data to a file.
 
 \chapter{Performance} \label{chap:perf}
 
@@ -479,7 +496,10 @@ M. Frigo, S. G. Johnson, \textit{Design and Implementation of FFTW3}, Proc. of t
 (2005), p. 216-231.
 
 \bibitem{moviepy}
-\textit{User Guide}. (n.d.). Retrieved December 14, 2015, from https://zulko.github.io/moviepy/
+\textit{MoviePy User Guide}. (n.d.). Retrieved December 14, 2015, from https://zulko.github.io/moviepy/
+
+\bibitem{tkinter}
+\textit{TkInter Documentation}. (n.d.). Retrieved December 14, 2015, from https://wiki.python.org/moin/TkInter
 
 \bibitem{conversion}
 C. Mihos. (n.d.). \textit{Spiral Galaxies}. Retrieved December 14, 2015, from http://burro.case.edu/Academics/Astr222/equations.pdf
