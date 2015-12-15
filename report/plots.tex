@@ -1,0 +1,97 @@
+% filename 1
+% caption 1
+% label 1
+% filename 2
+% caption 2
+% label 2
+\newcommand{\sidebyside}[6]{
+  \makebox[\textwidth][c]{
+    \begin{subfigure}[c]{0.5\textwidth}
+      \centering
+      \includegraphics[width=\textwidth]{#1}
+      \caption{#2}
+      \label{fig:#3}
+    \end{subfigure}
+    \quad
+    \begin{subfigure}[c]{0.5\textwidth}
+      \centering
+      \includegraphics[width=\textwidth]{#4}
+      \caption{#5}
+      \label{fig:#6}
+    \end{subfigure}
+  }
+}
+
+\newcommand{\timevsthreads}[1]{figs/time_vs_num_threads-N=#1.pdf}
+\newcommand{\speedupvsthreads}[1]{figs/speedup_vs_num_threads-N=#1.pdf}
+\newcommand{\timevsn}[1]{figs/time_vs_N-t=#1.pdf}
+\newcommand{\speedupvsn}[1]{figs/speedup_vs_N-t=#1.pdf}
+\newcommand{\timevsp}{figs/time_vs_p.pdf}
+
+\newgeometry{left=1in, right=1in, top=0.5in, bottom=0.5in}
+\begin{figure}[h]
+  \centering
+  \foreach \x/\y in {128/256, 512/1024, 2048/4096} {
+    \sidebyside{\timevsthreads{\x}}{}{timevsthreads-\x}
+               {\timevsthreads{\y}}{}{timevsthreads-\y}
+  }
+  \caption{Average iteration time vs number of threads}
+  \label{fig:timevsthreads}
+\end{figure}
+
+\begin{figure}[h]
+  \centering
+  \foreach \x/\y in {128/256, 512/1024, 2048/4096} {
+    \sidebyside{\speedupvsthreads{\x}}{}{speedupvsthreads-\x}
+               {\speedupvsthreads{\y}}{}{speedupvsthreads-\y}
+  }
+  \caption{Speedup vs number of threads}
+  \label{fig:speedupvsthreads}
+\end{figure}
+
+\begin{figure}[h]
+  \centering
+  \foreach \x/\y in {1/2, 3/4, 5/6} {
+    \sidebyside{\timevsn{\x}}{}{timevsn-\x}
+               {\timevsn{\y}}{}{timevsn-\y}
+  }
+  \caption{Average iteration time vs grid size ($N$)}
+  \label{fig:speedupvsthreads}
+\end{figure}
+\begin{figure}[h]
+  \centering
+  \foreach \x/\y in {7/8, 12/16, 20/24} {
+    \sidebyside{\timevsn{\x}}{}{timevsn-\x}
+               {\timevsn{\y}}{}{timevsn-\y}
+  }
+  \caption{Average iteration time vs grid size ($N$)}
+  \label{fig:speedupvsthreads}
+\end{figure}
+
+\begin{figure}[h]
+  \centering
+  \foreach \x/\y in {1/2, 3/4, 5/6} {
+    \sidebyside{\speedupvsn{\x}}{}{speedupvsn-\x}
+               {\speedupvsn{\y}}{}{speedupvsn-\y}
+  }
+  \caption{Speedup vs grid size ($N$)}
+  \label{fig:speedupvsthreads}
+\end{figure}
+\begin{figure}[h]
+  \centering
+  \foreach \x/\y in {7/8, 12/16, 20/24} {
+    \sidebyside{\speedupvsn{\x}}{}{speedupvsn-\x}
+               {\speedupvsn{\y}}{}{speedupvsn-\y}
+  }
+  \caption{Speedup vs grid size ($N$)}
+  \label{fig:speedupvsthreads}
+\end{figure}
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=\textwidth]{\timevsp}
+  \caption{Average iteration time vs number of particles ($N_p$)}
+  \label{fig:timevsp}
+\end{figure}
+
+\restoregeometry
