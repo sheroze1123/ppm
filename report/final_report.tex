@@ -5,6 +5,7 @@
 \usepackage{changepage}
 \usepackage{color}
 \usepackage{enumerate}
+\usepackage{fancyvrb}
 \usepackage{float}
 \usepackage{geometry}
 \usepackage{inconsolata}
@@ -18,6 +19,8 @@
 
 \newcommand{\braced}[1]{\left[{#1}\right]}
 \newcommand{\cpp}{C\texttt{++}}
+\newcommand{\figref}[1]{Figure~\ref{fig:#1}}
+\newcommand{\icpc}{\texttt{icpc}}
 \newcommand{\nbody}{$N$-body}
 
 % Fast Fourier Transform
@@ -218,7 +221,7 @@ The increase in performance comes with an accuracy cost. Using the NGP scheme to
 
 \chapter{Implementation Details} \label{chap:impl}
 
-We have implemented an \nbody{} simulator using the Particle-Mesh model in \cpp{} and a simulation visualizer in Python. In this chapter, we discuss the implementation of both the simulator and visualizer.
+We have implemented an \nbody{} simulator using the Particle-Mesh model and algorithm in \cpp{} and a simulation visualizer in Python. In this chapter, we discuss the implementation of both the simulator and visualizer.
 
 \section{FFTW} \label{sec:fftw}
 
@@ -285,11 +288,91 @@ simulations without ever marshalling data to a file.
 
 \chapter{Performance} \label{chap:perf}
 
+In this chapter, we discuss how we used profiling to guide our optimization decisions, we discuss the tuning and optimizations we performed, and finally we evaluate the performance of our simulator with a large number of scaling studies.
+
+\section{Profiling}
+The first implementation of our particle simulator was naively implemented and single-threaded. By quickly writing a reference implementation of the simulator, we were able to quickly develop and debug our visualizers and check the correctness of our later optimized implementations. We also profiled the compilation and execution of our first implementation to guide our optimization efforts.
+
+First, we examined the vectorization reports produced by \icpc{}. The reports showed that almost every one of our loops was being vectorized, not too surprising given the parallel nature of the Particle-Mesh algorithm. Moreover, the vectorization reports indicated that some of our arrays were unaligned. We vectorized the remaining of our loops and replaced invocations of \texttt{malloc} and \texttt{free} with invocations of \texttt{\_mm\_malloc} and \texttt{\_mm\_free} to align our arrays. After this, our vectorization reports showed fully vectorized loops with minor memory misalignment. A snippet of one of our vectorization report is shown in \figref{vec-report}.
+
+\begin{figure}[h]
+  \centering
+  \small
+  \begin{Verbatim}[gobble=4]
+    LOOP BEGIN at common.cpp(57,5) inlined into serial_opt.cpp(78,9)
+       remark #15388: vectorization support: reference rho_18337 has aligned access   [ common.cpp(58,9) ]
+       remark #15388: vectorization support: reference rho_18337 has aligned access   [ common.cpp(58,9) ]
+       remark #15399: vectorization support: unroll factor set to 4
+       remark #15300: LOOP WAS VECTORIZED
+       remark #15448: unmasked aligned unit stride loads: 1
+       remark #15449: unmasked aligned unit stride stores: 1
+       remark #15475: --- begin vector loop cost summary ---
+       remark #15476: scalar loop cost: 35
+       remark #15477: vector loop cost: 1.250
+       remark #15478: estimated potential speedup: 13.440
+       remark #15479: lightweight vector operations: 5
+       remark #15488: --- end vector loop cost summary ---
+    LOOP END
+  \end{Verbatim}
+  \caption{A snippet of a vectorization report}
+  \label{fig:vec-report}
+\end{figure}
+
+TODO(mjw): amplxe stuff
+
+\begin{figure}[h]
+  \centering
+  \small
+  \begin{Verbatim}[gobble=4]
+    Function                     Module        CPU Time
+    ---------------------------  ------------  --------
+    main                         serial_opt      6.907s
+    n1bv_64                      serial_opt      3.855s
+    n2fv_64                      serial_opt      2.387s
+    n1fv_32                      serial_opt      1.808s
+    hc2cbdftv_16                 serial_opt      1.120s
+    __intel_memset               serial_opt      1.100s
+    hc2cfdftv_16                 serial_opt      0.960s
+    fftw_cpy1d                   serial_opt      0.940s
+    t2fv_32                      serial_opt      0.900s
+    fftw_cpy2d                   serial_opt      0.898s
+    t2bv_16                      serial_opt      0.749s
+  \end{Verbatim}
+  \caption{A snippet of an \texttt{amplxe} profile of our serial code}
+  \label{fig:serial-ampl}
+\end{figure}
+
+\begin{figure}[h]
+  \centering
+  \small
+  \begin{Verbatim}[gobble=4]
+    Function                               Module              CPU Time
+    -------------------------------------  ------------------  --------
+    __kmp_fork_barrier                     libiomp5.so         283.260s
+    n2fv_64                                ppm_omp              13.749s
+    n1bv_128                               ppm_omp              12.812s
+    n1bv_64                                ppm_omp               9.395s
+    main                                   ppm_omp               7.493s
+    hc2cbdftv_8                            ppm_omp               5.470s
+    n1fv_32                                ppm_omp               4.710s
+    fftw_cpy1d                             ppm_omp               4.427s
+    __kmp_launch_thread                    libiomp5.so           3.570s
+    hc2cfdftv_16                           ppm_omp               2.587s
+    __kmp_join_call                        libiomp5.so           2.354s
+  \end{Verbatim}
+  \caption{A snippet of an \texttt{amplxe} profile of our parallel code}
+  \label{fig:omp-ampl}
+\end{figure}
+
+\section{Tuning}
+% better compilation
+% aligned memory access
+% omp parallel
+
 \section{Design Decisions}
 
 // Section to talk about our design decisions
 
-\subsection{Vectorization}
 
 // Vectorization report analysis, vectorized loops etc.
 
@@ -315,12 +398,6 @@ for (int j=0; j<N; j++) {
 \item \texttt{parallel} clause creates a thread pool that enables multiple threads to perform operations on the shared memory \texttt{phi}.
 \item \texttt{for} communicates to OpenMP that the following operation is a \texttt{for} loop to be executed in parallel.
 \end{itemize}
-
-\section{Timing Profiles}
-
-// Let's talk about the Amplxe profiling here
-\subsection{Serial Implementation}
-\subsection{Parallel Implementations}
 
 \section{Scaling Studies}
 

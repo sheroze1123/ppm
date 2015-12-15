@@ -1,50 +1,122 @@
 amplxe: Collection started. To stop the collection, either press CTRL-C or enter from another console window: amplxe-cl -r /home/mjw297/git/michael/ppm/r000hs -command stop.
-ppm_omp 100 1024 4000 0.1 1000 24 13.6012 0.0136012 
+ppm_omp 100 1024 4000 0.1 1000 24 13.6012 0.0136012
 amplxe: Collection stopped.
 amplxe: Using result path `/home/mjw297/git/michael/ppm/r000hs'
-amplxe: Executing actions  0 %                                                 amplxe: Executing actions  0 % Finalizing results                              amplxe: Executing actions  0 % Finalizing the result                           amplxe: Executing actions  0 % Clearing the database                           amplxe: Executing actions  8 % Clearing the database                           amplxe: Executing actions  8 % Loading 'systemcollector-en-cs-totient-04.coecisamplxe: Executing actions  8 % Loading '33059-33064.0.trace' file              amplxe: Executing actions  8 % Loading 'userapicollector-33064-9acbc75b.trace' amplxe: Executing actions  8 % Updating precomputed scalar metrics             amplxe: Executing actions  9 % Updating precomputed scalar metrics             amplxe: Executing actions  9 % Processing profile metrics and debug informationamplxe: Executing actions 16 % Processing profile metrics and debug informationamplxe: Executing actions 16 % Setting data model parameters                   amplxe: Executing actions 16 % Resolving module symbols                        
+
+amplxe: Executing actions  0 %
+amplxe: Executing actions  0 % Finalizing results
+amplxe: Executing actions  0 % Finalizing the result
+amplxe: Executing actions  0 % Clearing the database
+amplxe: Executing actions  8 % Clearing the database
+amplxe: Executing actions  8 % Loading 'systemcollector-en-cs-totient-04.coecis
+amplxe: Executing actions  8 % Loading '33059-33064.0.trace' file
+amplxe: Executing actions  8 % Loading 'userapicollector-33064-9acbc75b.trace'
+amplxe: Executing actions  8 % Updating precomputed scalar metrics
+amplxe: Executing actions  9 % Updating precomputed scalar metrics
+amplxe: Executing actions  9 % Processing profile metrics and debug information
+amplxe: Executing actions 16 % Processing profile metrics and debug information
+amplxe: Executing actions 16 % Setting data model parameters
+amplxe: Executing actions 16 % Resolving module symbols
 amplxe: Warning: Cannot locate file `[vsyscall]'.
-amplxe: Executing actions 16 % Resolving information for `[vsyscall]'          amplxe: Executing actions 16 % Resolving information for `ld-2.12.so'          amplxe: Executing actions 16 % Resolving information for `[vdso]'              amplxe: Executing actions 16 % Resolving information for `libittnotify_collectoamplxe: Executing actions 16 % Resolving information for `libpthread-2.12.so'  amplxe: Executing actions 16 % Resolving information for `libiomp5.so'         
+
+amplxe: Executing actions 16 % Resolving information for `[vsyscall]'
+amplxe: Executing actions 16 % Resolving information for `ld-2.12.so'
+amplxe: Executing actions 16 % Resolving information for `[vdso]'
+amplxe: Executing actions 16 % Resolving information for `libittnotify_collecto
+amplxe: Executing actions 16 % Resolving information for `libpthread-2.12.so'
+amplxe: Executing actions 16 % Resolving information for `libiomp5.so'
 amplxe: Warning: Cannot locate debugging symbols for file `/lib64/ld-2.12.so'.
-amplxe: Executing actions 16 % Resolving information for `ppm_omp'             
+
+amplxe: Executing actions 16 % Resolving information for `ppm_omp'
 amplxe: Warning: Cannot locate debugging symbols for file `/lib64/libpthread-2.12.so'.
 amplxe: Warning: Cannot locate debugging symbols for file `/usr/local/intel/vtune_amplifier_xe_2015.3.0.403110/lib64/runtime/libittnotify_collector.so'.
-amplxe: Executing actions 16 % Resolving information for `libdl-2.12.so'       
+
+amplxe: Executing actions 16 % Resolving information for `libdl-2.12.so'
 amplxe: Warning: Cannot locate debugging symbols for file `/lib64/libdl-2.12.so'.
-amplxe: Executing actions 16 % Resolving information for `libtpsstool.so'      amplxe: Executing actions 16 % Resolving information for dangling locations    amplxe: Executing actions 17 % Resolving information for dangling locations    amplxe: Executing actions 17 % Resolving information for `libc-2.12.so'        
+
+amplxe: Executing actions 16 % Resolving information for `libtpsstool.so'
+amplxe: Executing actions 16 % Resolving information for dangling locations
+amplxe: Executing actions 17 % Resolving information for dangling locations
+amplxe: Executing actions 17 % Resolving information for `libc-2.12.so'
 amplxe: Warning: Cannot locate debugging symbols for file `/lib64/libc-2.12.so'.
 amplxe: Warning: Cannot locate debugging symbols for file `/home/mjw297/git/michael/ppm/ppm_omp'.
 amplxe: Warning: Cannot locate debugging symbols for file `/usr/local/intel/vtune_amplifier_xe_2015.3.0.403110/lib64/libtpsstool.so'.
-amplxe: Executing actions 18 % Resolving information for `libc-2.12.so'        amplxe: Executing actions 19 % Resolving information for `libc-2.12.so'        amplxe: Executing actions 20 % Resolving information for `libc-2.12.so'        amplxe: Executing actions 21 % Resolving information for `libc-2.12.so'        amplxe: Executing actions 22 % Resolving information for `libc-2.12.so'        
+
+amplxe: Executing actions 18 % Resolving information for `libc-2.12.so'
+amplxe: Executing actions 19 % Resolving information for `libc-2.12.so'
+amplxe: Executing actions 20 % Resolving information for `libc-2.12.so'
+amplxe: Executing actions 21 % Resolving information for `libc-2.12.so'
+amplxe: Executing actions 22 % Resolving information for `libc-2.12.so'
 amplxe: Warning: Cannot locate debugging symbols for file `/home/mjw297/git/michael/ppm/ppm_omp'.
-amplxe: Executing actions 23 % Resolving information for `libc-2.12.so'        amplxe: Executing actions 24 % Resolving information for `libc-2.12.so'        amplxe: Executing actions 24 % Processing profile metrics and debug informationamplxe: Executing actions 26 % Processing profile metrics and debug informationamplxe: Executing actions 28 % Processing profile metrics and debug informationamplxe: Executing actions 29 % Processing profile metrics and debug informationamplxe: Executing actions 30 % Processing profile metrics and debug informationamplxe: Executing actions 31 % Processing profile metrics and debug informationamplxe: Executing actions 32 % Processing profile metrics and debug informationamplxe: Executing actions 32 % Setting data model parameters                   amplxe: Executing actions 33 % Setting data model parameters                   amplxe: Executing actions 33 % Precomputing frequently used data               amplxe: Executing actions 34 % Precomputing frequently used data               amplxe: Executing actions 35 % Precomputing frequently used data               amplxe: Executing actions 36 % Precomputing frequently used data               amplxe: Executing actions 37 % Precomputing frequently used data               amplxe: Executing actions 38 % Precomputing frequently used data               amplxe: Executing actions 39 % Precomputing frequently used data               amplxe: Executing actions 39 % Updating precomputed scalar metrics             amplxe: Executing actions 41 % Updating precomputed scalar metrics             amplxe: Executing actions 41 % Discarding redundant overtime data              amplxe: Executing actions 43 % Discarding redundant overtime data              amplxe: Executing actions 43 % Saving the result                               amplxe: Executing actions 45 % Saving the result                               amplxe: Executing actions 47 % Saving the result                               amplxe: Executing actions 49 % Saving the result                               amplxe: Executing actions 50 % Saving the result                               amplxe: Executing actions 50 % Generating a report                             amplxe: Executing actions 50 % Setting knob values                             amplxe: Executing actions 50 % Generating a report                             amplxe: Executing actions 75 % Generating a report                             amplxe: Executing actions 100 % Generating a report                            amplxe: Executing actions 100 % done                                           
+
+amplxe: Executing actions 23 % Resolving information for `libc-2.12.so'
+amplxe: Executing actions 24 % Resolving information for `libc-2.12.so'
+amplxe: Executing actions 24 % Processing profile metrics and debug information
+amplxe: Executing actions 26 % Processing profile metrics and debug information
+amplxe: Executing actions 28 % Processing profile metrics and debug information
+amplxe: Executing actions 29 % Processing profile metrics and debug information
+amplxe: Executing actions 30 % Processing profile metrics and debug information
+amplxe: Executing actions 31 % Processing profile metrics and debug information
+amplxe: Executing actions 32 % Processing profile metrics and debug information
+amplxe: Executing actions 32 % Setting data model parameters
+amplxe: Executing actions 33 % Setting data model parameters
+amplxe: Executing actions 33 % Precomputing frequently used data
+amplxe: Executing actions 34 % Precomputing frequently used data
+amplxe: Executing actions 35 % Precomputing frequently used data
+amplxe: Executing actions 36 % Precomputing frequently used data
+amplxe: Executing actions 37 % Precomputing frequently used data
+amplxe: Executing actions 38 % Precomputing frequently used data
+amplxe: Executing actions 39 % Precomputing frequently used data
+amplxe: Executing actions 39 % Updating precomputed scalar metrics
+amplxe: Executing actions 41 % Updating precomputed scalar metrics
+amplxe: Executing actions 41 % Discarding redundant overtime data
+amplxe: Executing actions 43 % Discarding redundant overtime data
+amplxe: Executing actions 43 % Saving the result
+amplxe: Executing actions 45 % Saving the result
+amplxe: Executing actions 47 % Saving the result
+amplxe: Executing actions 49 % Saving the result
+amplxe: Executing actions 50 % Saving the result
+amplxe: Executing actions 50 % Generating a report
+amplxe: Executing actions 50 % Setting knob values
+amplxe: Executing actions 50 % Generating a report
+amplxe: Executing actions 75 % Generating a report
+amplxe: Executing actions 100 % Generating a report
+amplxe: Executing actions 100 % done
+
 
 Collection and Platform Info
 ----------------------------
-Parameter                 r000hs                                                                          
+Parameter                 r000hs
 ------------------------  --------------------------------------------------------------------------------
-Application Command Line  ./ppm_omp "-n" "1024" "-p" "4000" "-o" "24"                                     
+Application Command Line  ./ppm_omp "-n" "1024" "-p" "4000" "-o" "24"
 Operating System          2.6.32-573.3.1.el6.x86_64 Red Hat Enterprise Linux Server release 6.7 (Santiago)
-Computer Name             en-cs-totient-04.coecis.cornell.edu                                             
-Result Size               24936679                                                                        
-Collection start time     03:25:13 15/12/2015 UTC                                                         
-Collection stop time      03:25:29 15/12/2015 UTC                                                         
+Computer Name             en-cs-totient-04.coecis.cornell.edu
+Result Size               24936679
+Collection start time     03:25:13 15/12/2015 UTC
+Collection stop time      03:25:29 15/12/2015 UTC
 
 CPU
 ---
-Parameter          r000hs                             
+Parameter          r000hs
 -----------------  -----------------------------------
 Name               Intel(R) Xeon(R) E5/E7 v3 processor
-Frequency          2399999397                         
-Logical CPU Count  24                                 
+Frequency          2399999397
+Logical CPU Count  24
 
 Summary
 -------
-Elapsed Time:       16.098 
+Elapsed Time:       16.098
 CPU Time:           359.769
-Average CPU Usage:  4.355  
+Average CPU Usage:  4.355
 amplxe: Using result path `/home/mjw297/git/michael/ppm/r000hs'
-amplxe: Executing actions  0 %                                                 amplxe: Executing actions  0 % Finalizing results                              amplxe: Executing actions 50 % Finalizing results                              amplxe: Executing actions 50 % Generating a report                             amplxe: Executing actions 50 % Setting knob values                             amplxe: Executing actions 50 % Generating a report                             Function                               Module              CPU Time  CPU Time:Idle  CPU Time:Poor  CPU Time:Ok  CPU Time:Ideal  CPU Time:Over  Spin Time  Spin Time:Imbalance or Serial Spinning (OpenMP)  Spin Time:Lock Contention (OpenMP)  Spin Time:Communication (MPI)  Spin Time:Other  Overhead Time  Overhead Time:Creation (OpenMP)  Overhead Time:Scheduling (OpenMP)  Overhead Time:Reduction (OpenMP)  Overhead Time:Other
+
+amplxe: Executing actions  0 %
+amplxe: Executing actions  0 % Finalizing results
+amplxe: Executing actions 50 % Finalizing results
+amplxe: Executing actions 50 % Generating a report
+amplxe: Executing actions 50 % Setting knob values
+amplxe: Executing actions 50 % Generating a report
+Function                               Module              CPU Time  CPU Time:Idle  CPU Time:Poor  CPU Time:Ok  CPU Time:Ideal  CPU Time:Over  Spin Time  Spin Time:Imbalance or Serial Spinning (OpenMP)  Spin Time:Lock Contention (OpenMP)  Spin Time:Communication (MPI)  Spin Time:Other  Overhead Time  Overhead Time:Creation (OpenMP)  Overhead Time:Scheduling (OpenMP)  Overhead Time:Reduction (OpenMP)  Overhead Time:Other
 -------------------------------------  ------------------  --------  -------------  -------------  -----------  --------------  -------------  ---------  -----------------------------------------------  ----------------------------------  -----------------------------  ---------------  -------------  -------------------------------  ---------------------------------  --------------------------------  -------------------
 __kmp_fork_barrier                     libiomp5.so         283.260s        22.628s       258.183s       2.449s              0s             0s      283.2                                         269.083s                                  0s                                         14.117s       0.060012                               0s                                 0s                                0s               0.060s
 n2fv_64                                ppm_omp              13.749s             0s        13.419s       0.330s              0s             0s          0                                               0s                                  0s                                              0s              0                               0s                                 0s                                0s                   0s
@@ -130,7 +202,11 @@ n1fv_16                                ppm_omp               0.010s             
 recur                                  ppm_omp               0.010s             0s         0.010s           0s              0s             0s          0                                               0s                                  0s                                              0s              0                               0s                                 0s                                0s                   0s
 t1bv_8                                 ppm_omp               0.010s             0s         0.010s           0s              0s             0s          0                                               0s                                  0s                                              0s              0                               0s                                 0s                                0s                   0s
 __gettimeofday                         libc-2.12.so          0.010s             0s         0.010s           0s              0s             0s          0                                               0s                                  0s                                              0s              0                               0s                                 0s                                0s                   0s
-n1bv_8                                 ppm_omp               0.010s             0s         0.010s           0s              0s             0s          0                                               0s                                  0s                                              0s              0                               0s                                 0s                                amplxe: Executing actions 75 % Generating a report                             amplxe: Executing actions 100 % Generating a report                            amplxe: Executing actions 100 % done                                           
+n1bv_8                                 ppm_omp               0.010s             0s         0.010s           0s              0s             0s          0                                               0s                                  0s                                              0s              0                               0s                                 0s
+amplxe: Executing actions 75 % Generating a report
+amplxe: Executing actions 100 % Generating a report
+amplxe: Executing actions 100 % done
+
 0s                   0s
 fftw_md5end                            ppm_omp               0.010s             0s         0.010s           0s              0s             0s          0                                               0s                                  0s                                              0s              0                               0s                                 0s                                0s                   0s
 dotile                                 ppm_omp               0.010s             0s         0.010s           0s              0s             0s          0                                               0s                                  0s                                              0s              0                               0s                                 0s                                0s                   0s
