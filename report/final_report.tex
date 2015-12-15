@@ -19,6 +19,7 @@
 
 \newcommand{\TODO}[1]{{\Huge TODO: #1}}
 \newcommand{\braced}[1]{\left[{#1}\right]}
+\newcommand{\chapref}[1]{Chapter~\ref{chap:#1}}
 \newcommand{\cpp}{C\texttt{++}}
 \newcommand{\fftwomp}{\texttt{fftw\_omp}}
 \newcommand{\figref}[1]{Figure~\ref{fig:#1}}
@@ -224,12 +225,12 @@ The advantage of the Particle-Mesh method is the performance. Updates to the par
 
 The increase in performance comes with an accuracy cost. Using the NGP scheme to compute acceleration on a particle decreases the resolution of the solver and to obtain fairly accurate time integration, the spatial sampling interval should be smaller than the wavelengths of importance in the physical system. Finer mass interpolation schemes such as CIC and mixed schemes are discussed in Hockney and Eastwood's Computer simulation using particles \cite{csup}.
 
-\chapter{Implementation Details} \label{chap:impl}
+\chapter{Implementation Details}\label{chap:impl}
 \TODO{expand chapter to describe the three implementations}
 
 We have implemented an \nbody{} simulator using the Particle-Mesh model and algorithm in \cpp{} and a simulation visualizer in Python. In this chapter, we discuss the implementation of both the simulator and visualizer.
 
-\section{FFTW} \label{sec:fftw}
+\section{FFTW}\label{sec:fftw}
 
 To compute the Fourier transform required in the Particle-Mesh method, we use the Fast Fourier Transform, obtained from the FFTW package. (www.fftw.org, the "Fastest Fourier Transform in the West" \cite{fftw}). In FFTW, the Discrete Fourier Transform of a complex one dimensional array $X$ computes $Y$ where,
 
@@ -418,9 +419,13 @@ The scaling study also shows the relative performance of the \fftwomp{}, \fullom
 
 \subsection{Weak Scaling Study}
 
-\subsection{Particle Scaling}
-
 \subsection{Grid Size Scaling}
+In addition to strong and weak scaling studies, we also measured the performance of our simulators with respect to grid size for a varying number of threads. The data---presented in \figref{timevsna}, \figref{timevsnb}, \figref{speedupvsna}, and \figref{speedupvsnb}--- is similar to the data found in the strong scaling study. \figref{timevsna} and \figref{timevsnb} confirm the $N^2\log(N^2)$ runtime of the Particle-Mesh algorithm. They also confirm that the \fullomp{} simulator performs worse than the other two simulators, no matter the number of threads. The data also makes it clear that the \fftwomp{} and \partialomp{} simulators have very similar performance. \figref{speedupvsna} and \figref{speedupvsnb} show an alternate view of the same data. Most importantly, they highlight the fact that the \fftwomp{} and \partialomp{} simulators perform almost twice as well as the serial implementation for large $N$.
+
+\subsection{Particle Scaling}
+As discussed in \chapref{impl}, \fftwomp{} invokes a parallelized implementation of FFTW's fast Fourier transform function; the \partialomp{} simulator introduces additional parallelization by parallelizing loops ranging over particles; and the \fullomp{} simulator additionally parallelizes all loops. Our previous scaling studies show that \fullomp{} is too aggressive and has poor performance because of its heavy synchronization overhead. Our \partialomp{} simulator has less overhead because it only parallelizes loops over the particles. If the number of particles is large, it's possible that the parallelization benefits outweigh the synchronization overhead. We performed a scaling study with respect to the number of particles to explore this hypothesis. We fixed a small grid size of $N = 128$ and benchmarked the performance of our simulators for 1, 2, 3, and 4 threads. The data is presented in \figref{timevsp}.
+
+The data shows that for all three simulators, increasing the number of threads decreases the performance of the simulators for all number of particles. These results are again confirmed by the profile in \figref{omp-ampl}. The bottleneck of our simulators is in FFTW, not in particle processing. This means that if we fix a small grid size of $N=128$ so that additional threads do not increase the performance of the fast Fourier transform, then adding more threads does not significantly help process the particles. In other words, adding more threads doesn't help particle processing. It's possible that if we increase the number of particles by one or two orders of magnitude, that multiple threads could begin to be beneficial, but given an enormous amount of particles, it becomes practical to increase the grid size to maintain a decent level of accuracy. When we increase the grid size though, the overhead of FFTW increasingly dominates the cost of particle processing. Thus, it is unclear that parallelization will ever benefit particle processing, no matter the number of particles.
 
 \input{plots.tex}
 
