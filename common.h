@@ -3,7 +3,7 @@
 
 #include <fftw3.h>
 
-extern const double G; //TODO: Scale everything by G
+extern const double G; 
 
 // Performs the following initialization.
 //   1. `p_vel` is set to all 0

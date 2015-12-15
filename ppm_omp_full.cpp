@@ -57,8 +57,6 @@ void strong_scaling(int t_steps, double* particle_pos, double* particle_vel,
 
             fftw_execute(phi_plan);
 
-            // TODO: Scaling delta_t
-
             compute_accelerations(N, a_x, a_y, phi, delta_d);
 
             update_particles(N_p, N, delta_t, delta_d, L,
@@ -197,8 +195,6 @@ int main(int argc, char** argv) {
 
         #pragma omp single
         fftw_execute(phi_plan);
-
-        // TODO: Scaling delta_t
 
         // #pragma omp single
         // compute_accelerations(N, a_x, a_y, phi, delta_d);

@@ -54,7 +54,7 @@ void solar_sys_initialization(int N_p, double* p_pos, double* p_vel, double* p_m
 
     // Initial position distribution is a Gaussian centered at (L/2, L/2)
     double r_mean = L/2;
-    double r_sigma = 2; //TODO: Figure out best distribution
+    double r_sigma = 2; 
     double x, y, r;
     normal_distribution<> gauss(r_mean, r_sigma);
 
@@ -253,12 +253,6 @@ int main(int argc, char** argv) {
     }
 
     if(debug) {
-        // G=1.0;
-        // N=128;
-        // N_p = 100;
-        // L = 100.0;
-        // delta_t = 0.1;
-
         L = 60.0;
         delta_t = 0.0005;
         G = G_scaled;
@@ -305,8 +299,6 @@ int main(int argc, char** argv) {
         compute_phi_k(N, L, rho_k, G);
 
         fftw_execute(phi_plan);
-
-        // TODO: Scaling delta_t
 
         compute_accelerations(N, a_x, a_y, phi, delta_d);
 
