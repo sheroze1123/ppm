@@ -293,12 +293,12 @@ In this chapter, we discuss how we used profiling to guide our optimization deci
 \section{Profiling}
 The first implementation of our particle simulator was naively implemented and single-threaded. By quickly writing a reference implementation of the simulator, we were able to quickly develop and debug our visualizers and check the correctness of our later optimized implementations. We also profiled the compilation and execution of our first implementation to guide our optimization efforts.
 
-First, we examined the vectorization reports produced by \icpc{}. The reports showed that almost every one of our loops was being vectorized, not too surprising given the parallel nature of the Particle-Mesh algorithm. Moreover, the vectorization reports indicated that some of our arrays were unaligned. We vectorized the remaining of our loops and replaced invocations of \texttt{malloc} and \texttt{free} with invocations of \texttt{\_mm\_malloc} and \texttt{\_mm\_free} to align our arrays. After this, our vectorization reports showed fully vectorized loops with minor memory misalignment. A snippet of one of our vectorization report is shown in \figref{vec-report}.
+First, we examined the vectorization reports produced by \icpc{}. The reports showed that almost every one of our loops was being vectorized, not too surprising given the parallel nature of the Particle-Mesh algorithm. Moreover, the vectorization reports indicated that some of our arrays were unaligned. We vectorized the remaining of our loops and replaced invocations of \texttt{malloc} and \texttt{free} with invocations of \texttt{\_mm\_malloc} and \texttt{\_mm\_free} to align our arrays. After this, our vectorization reports showed fully vectorized loops with minor memory misalignment. A snippet of one of our vectorization reports is shown in \figref{vec-report}.
 
 \begin{figure}[h]
   \centering
   \small
-  \begin{Verbatim}[gobble=4]
+  \begin{BVerbatim}[gobble=4]
     LOOP BEGIN at common.cpp(57,5) inlined into serial_opt.cpp(78,9)
        remark #15388: vectorization support: reference rho_18337 has aligned access   [ common.cpp(58,9) ]
        remark #15388: vectorization support: reference rho_18337 has aligned access   [ common.cpp(58,9) ]
@@ -313,17 +313,17 @@ First, we examined the vectorization reports produced by \icpc{}. The reports sh
        remark #15479: lightweight vector operations: 5
        remark #15488: --- end vector loop cost summary ---
     LOOP END
-  \end{Verbatim}
+  \end{BVerbatim}
   \caption{A snippet of a vectorization report}
   \label{fig:vec-report}
 \end{figure}
 
-TODO(mjw): amplxe stuff
+Next, we profiled the bottlenecks in the execution of our serial and parallel code using \texttt{amplxe-cl}, a snippet of which can be found in \figref{serial-ampl} and \figref{omp-ampl}. The profiles show that the majority of the execution of our serial code is spent inside of the FFTW library. This is consistent with the Particle-Mesh algorithm which spends a considerable amount of time performing fast Fourier transforms. Moreover, this is desirable; the bottleneck of our code is in a library that has been \emph{very} thoroughly optimized. This means that we have successfully offloaded the bulk of the computation to a well-tuned library. The profiles report a similar pattern for our parallel code. The majority of the execution time is spent within the FFTW library. One notable difference is that the parallel code spends most of its time performing barrier operations to synchronize code. This suggested to us that increasing the number of threads would only improve the performance of the code given a large enough grid size. This hypothesis was confirmed by our scaling studies, as discussed later.
 
 \begin{figure}[h]
   \centering
   \small
-  \begin{Verbatim}[gobble=4]
+  \begin{BVerbatim}[gobble=4]
     Function                     Module        CPU Time
     ---------------------------  ------------  --------
     main                         serial_opt      6.907s
@@ -337,7 +337,7 @@ TODO(mjw): amplxe stuff
     t2fv_32                      serial_opt      0.900s
     fftw_cpy2d                   serial_opt      0.898s
     t2bv_16                      serial_opt      0.749s
-  \end{Verbatim}
+  \end{BVerbatim}
   \caption{A snippet of an \texttt{amplxe} profile of our serial code}
   \label{fig:serial-ampl}
 \end{figure}
@@ -345,7 +345,7 @@ TODO(mjw): amplxe stuff
 \begin{figure}[h]
   \centering
   \small
-  \begin{Verbatim}[gobble=4]
+  \begin{BVerbatim}[gobble=4]
     Function                               Module              CPU Time
     -------------------------------------  ------------------  --------
     __kmp_fork_barrier                     libiomp5.so         283.260s
@@ -359,7 +359,7 @@ TODO(mjw): amplxe stuff
     __kmp_launch_thread                    libiomp5.so           3.570s
     hc2cfdftv_16                           ppm_omp               2.587s
     __kmp_join_call                        libiomp5.so           2.354s
-  \end{Verbatim}
+  \end{BVerbatim}
   \caption{A snippet of an \texttt{amplxe} profile of our parallel code}
   \label{fig:omp-ampl}
 \end{figure}
