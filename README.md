@@ -1,6 +1,6 @@
 # Parallel Particle Mesh applied to N-body simulations
 
-<p align="center"
+<p align="center">
   <img src="https://raw.githubusercontent.com/sheroze1123/ppm/master/particles.gif" alt="particle simulation"/>
 </p>
 
