@@ -1,6 +1,8 @@
 # Parallel Particle Mesh applied to N-body simulations
 
+<p align="center"
 ![Evolution](https://github.com/sheroze1123/ppm/blob/master/particles.gif)
+</p>
 
 ## Building ##
 Our particle simulators depend on the FFTW discrete Fourier transform library.
