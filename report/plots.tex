@@ -24,6 +24,7 @@
 
 \newcommand{\timevsthreads}[1]{figs/time_vs_num_threads-N=#1.pdf}
 \newcommand{\speedupvsthreads}[1]{figs/speedup_vs_num_threads-N=#1.pdf}
+\newcommand{\weak}[1]{figs/weak-N_p=#1.pdf}
 \newcommand{\timevsn}[1]{figs/time_vs_N-t=#1.pdf}
 \newcommand{\speedupvsn}[1]{figs/speedup_vs_N-t=#1.pdf}
 \newcommand{\timevsp}{figs/time_vs_p.pdf}
@@ -47,6 +48,16 @@
   }
   \caption{Speedup vs number of threads}
   \label{fig:speedupvsthreads}
+\end{figure}
+
+\begin{figure}[h]
+  \centering
+  \foreach \x/\y in {1600/3200, 6400/12800} {
+    \sidebyside{\weak{\x}}{}{weak-\x}
+               {\weak{\y}}{}{weak-\y}
+  }
+  \caption{Efficiency vs number of threads}
+  \label{fig:weak}
 \end{figure}
 
 \begin{figure}[h]

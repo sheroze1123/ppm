@@ -30,6 +30,7 @@
 \newcommand{\nbody}{$N$-body}
 \newcommand{\partialomp}{\texttt{partial\_omp}}
 \newcommand{\set}[1]{\left\{ {#1} \right\}}
+\newcommand{\tabref}[1]{Table~\ref{tab:#1}}
 
 % Fast Fourier Transform
 \newcommand{\FFTsymbol}{\text{FFT}}
@@ -460,7 +461,7 @@ One benefit of the Particle-Mesh algorithm is that majority of the complexity an
 \end{itemize}
 
 \section{Scaling Studies}
-In this section, we perform a large number of scaling studies to thoroughly evaluate the performance and scalability of our particle simulator. \figref{timevsthreads}, \figref{speedupvsthreads}, \figref{timevsna}, \figref{timevsnb}, \figref{speedupvsna}, \figref{speedupvsnb}, and \figref{timevsp} present the data gathered during our experiments.
+In this section, we perform a large number of scaling studies to thoroughly evaluate the performance and scalability of our particle simulator. \figref{timevsthreads}, \figref{speedupvsthreads}, \figref{weak}, \figref{timevsna}, \figref{timevsnb}, \figref{speedupvsna}, \figref{speedupvsnb}, and \figref{timevsp} present the data gathered during our experiments.
 
 \subsection{Strong Scaling Study}
 We conducted a strong scaling study to measure the scalability of our implementations. We fixed the number of particles at $N_p = 12800$. Then, for each grid size ($N$) in $\set{128, 256, 512, 1024, 2048, 4096}$, we executed our particle simulators for 1, 2, 3, 4, 5, 6, 7, 8, 12, 16, 20, and 24 threads. \figref{timevsthreads} charts the average iteration execution time; \figref{speedupvsthreads} charts the average speedup compared to our serial implementation.
@@ -470,6 +471,24 @@ The strong scaling study provides a number of interesting insights. First, for s
 The scaling study also shows the relative performance of the \fftwomp{}, \fullomp{}, and \partialomp{} simulators. For small values of $N$, the \partialomp{} and \fullomp{} simulators perform similarly and both perform worse than the \fftwomp{} simulator. When $N$ increases, the performance of the \partialomp{} simulator approaches that of the \fftwomp{} simulator, and the performance of the \fullomp{} simulator decreases. This can again be attributed to thread synchronization overhead. The \fullomp{} simulator aggressively parallelizes loops over the grid, and some of these loops have critical sections within them. As the grid size increases, the overhead of synchronizing threads within the loop outweighs the benefits of parallelizing the loop to start with. Moreover, the fact that the \fftwomp{} and \partialomp{} simulator converge in performance suggests that for large grid sizes and a modest number of particles, the majority of the time is spent performing fast Fourier transforms and not on particle processing. This is again consistent with the profiles presented in \figref{ampl} and is confirmed by our particle scaling experiments discussed below.
 
 \subsection{Weak Scaling Study}
+We also performed a weak scaling study to measure the scalability of our simulators. For each number of threads $o$ in $\set{1, 2, 3, 4, 5, 6, 7, 8, 12, 16, 20, 24}$, we selected a grid size $N_o$ such that each thread has an equal amount of work. Since the running time of the Particle-Mesh algorithm is bounded by the fast Fourier transformation, there is $O(N_o^2 \log(N_o^2))$ work. Thus, we find $N_o$ by solving the following equation for all $o$ where $k$ is a constant.
+\begin{equation}
+  \frac{N_o^2 \log(N_o^2)}{t} = k
+\end{equation}
+We let $N_1 = 256$, so $k = 256^2 \log(256^2)$. We then solved for $N_o$ numerically, the values of which are reported in \tabref{no}.
+
+\begin{table}[ht]
+  \centering
+  \begin{tabular}{|c|c|c|c|c|c|c|c|c|c|c|c|c|}
+    \hline
+    $o$  &1  &2  &3  &4  &5  &6  &7  &8  &12 &16 &20 &24   \\\hline
+    $N_o$&256&352&424&485&538&585&628&669&807&923&1024&1115\\\hline
+  \end{tabular}
+  \caption{$N_o$ for $o \in \set{1, 2, 3, 4, 5, 6, 7, 8, 12, 16, 20, 24}$}
+  \label{tab:no}
+\end{table}
+
+Then, we varied the number of particles in the set $N_p = \set{1600, 3200, 6400, 12800}$, and measured the average time step execution time for each of our simulators. We scaled each execution time by the execution time of the single threaded case to compute efficiency. This is charted in \figref{weak}. The weak scaling study shows a decrease in efficiency as we increase the number of threads. This is expected and caused by the overheads of synchronizing threads. Moreover, the results are consistent with the results of the strong scaling study and show that the \fftwomp{} and \partialomp{} simulators perform similarly, while the \fullomp{} simulator is generally less efficient.
 
 \subsection{Grid Size Scaling}
 In addition to strong and weak scaling studies, we also measured the performance of our simulators with respect to grid size for a varying number of threads. The data---presented in \figref{timevsna}, \figref{timevsnb}, \figref{speedupvsna}, and \figref{speedupvsnb}--- is similar to the data found in the strong scaling study. \figref{timevsna} and \figref{timevsnb} confirm the $N^2\log(N^2)$ runtime of the Particle-Mesh algorithm. They also confirm that the \fullomp{} simulator performs worse than the other two simulators, no matter the number of threads. The data also makes it clear that the \fftwomp{} and \partialomp{} simulators have very similar performance. \figref{speedupvsna} and \figref{speedupvsnb} show an alternate view of the same data. Most importantly, they highlight the fact that the \fftwomp{} and \partialomp{} simulators perform almost twice as well as the serial implementation for large $N$.
