@@ -17,11 +17,16 @@
 \usepackage{url}
 \usepackage{verbatim}
 
+\newcommand{\TODO}[1]{{\Huge TODO: #1}}
 \newcommand{\braced}[1]{\left[{#1}\right]}
 \newcommand{\cpp}{C\texttt{++}}
+\newcommand{\fftwomp}{\texttt{fftw\_omp}}
 \newcommand{\figref}[1]{Figure~\ref{fig:#1}}
+\newcommand{\fullomp}{\texttt{full\_omp}}
 \newcommand{\icpc}{\texttt{icpc}}
 \newcommand{\nbody}{$N$-body}
+\newcommand{\partialomp}{\texttt{partial\_omp}}
+\newcommand{\set}[1]{\left\{ {#1} \right\}}
 
 % Fast Fourier Transform
 \newcommand{\FFTsymbol}{\text{FFT}}
@@ -220,6 +225,7 @@ The advantage of the Particle-Mesh method is the performance. Updates to the par
 The increase in performance comes with an accuracy cost. Using the NGP scheme to compute acceleration on a particle decreases the resolution of the solver and to obtain fairly accurate time integration, the spatial sampling interval should be smaller than the wavelengths of importance in the physical system. Finer mass interpolation schemes such as CIC and mixed schemes are discussed in Hockney and Eastwood's Computer simulation using particles \cite{csup}.
 
 \chapter{Implementation Details} \label{chap:impl}
+\TODO{expand chapter to describe the three implementations}
 
 We have implemented an \nbody{} simulator using the Particle-Mesh model and algorithm in \cpp{} and a simulation visualizer in Python. In this chapter, we discuss the implementation of both the simulator and visualizer.
 
@@ -401,7 +407,14 @@ for (int j=0; j<N; j++) {
 
 \section{Scaling Studies}
 
+In this section, we perform a large number of scaling studies to thoroughly evaluate the performance and scalability of our particle simulator. \figref{timevsthreads}, \figref{speedupvsthreads}, \figref{timevsna}, \figref{timevsnb}, \figref{speedupvsna}, \figref{speedupvsnb}, and \figref{timevsp} present the data gathered during our experiments.
+
 \subsection{Strong Scaling Study}
+We conducted a strong scaling study to measure the scalability of our implementations. We fixed the number of particles at $N_p = 12800$. Then, for each grid size ($N$) in $\set{128, 256, 512, 1024, 2048, 4096}$, we executed our particle simulators for 1, 2, 3, 4, 5, 6, 7, 8, 12, 16, 20, and 24 threads. \figref{timevsthreads} charts the average iteration execution time; \figref{speedupvsthreads} charts the average speedup compared to our serial implementation.
+
+The strong scaling study provides a number of interesting insights. First, for small $N$, increasing the number of threads never decreases and sometimes increases the execution time of the simulators. This is consistent with our intuition and consistent with the profiles presented in \figref{omp-ampl}. When the grid is too small, there is simply not enough work for a large number of threads. As a result, the majority of the execution time is spent synchronizing threads. On the other hand, for large $N$, increasing the number of threads does significantly improve the performance of the code. Notably, for $N=2048$ and $N = 4096$, the \fftwomp{} and \partialomp{} simulators execute almost twice as fast as our serial implementation. We hypothesize that for even larger grids, and for fewer particles, the speedup will continue to increase. Of course, these results are not surprising. The FFTW documentation even reports that ``if the problem size is too small, you may want to use fewer threads than you have processors'' \cite{fftwthreads}.
+
+The scaling study also shows the relative performance of the \fftwomp{}, \fullomp{}, and \partialomp{} simulators. For small values of $N$, the \partialomp{} and \fullomp{} simulators perform similarly and both perform worse than the \fftwomp{} simulator. When $N$ increases, the performance of the \partialomp{} simulator approaches that of the \fftwomp{} simulator, and the performance of the \fullomp{} simulator decreases. This can again be attributed to thread synchronization overhead. The \fullomp{} simulator aggressively parallelizes loops over the grid, and some of these loops have critical sections within them. As the grid size increases, the overhead of synchronizing threads within the loop outweighs the benefits of parallelizing the loop to start with. Moreover, the fact that the \fftwomp{} and \partialomp{} simulator converge in performance suggests that for large grid sizes and a modest number of particles, the majority of the time is spent performing fast Fourier transforms and not on particle processing. This is again consistent with the profiles presented in \figref{omp-ampl} and is confirmed by our particle scaling experiments discussed below.
 
 \subsection{Weak Scaling Study}
 
@@ -607,6 +620,9 @@ B. Barney (n.d.). \textit{OpenMP Tutorial}. Retrieved December 14, 2015, from ht
 
 \bibitem{simd}
 G. Levand (n.d.). \textit{Chapter 2 Basics of SIMD Programming}. Retrieved December 14, 2015, from https://www.kernel.org/pub/linux/kernel/people/geoff/cell/ps3-linux-docs/CellProgrammingTutorial/BasicsOfSIMDProgramming.html
+
+\bibitem{fftwthreads}
+\textit{How Many Threads to Use?}. (n.d.). Retrieved December 14, 2015, from \url{http://www.fftw.org/fftw3_doc/How-Many-Threads-to-Use_003f.html#How-Many-Threads-to-Use_003f}
 \end{thebibliography}
 
 \end{document}
