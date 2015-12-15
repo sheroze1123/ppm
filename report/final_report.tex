@@ -489,26 +489,28 @@ To see the \nbody{} simulation in action, we model a distribution of bodies with
 
 To scale the floating point numbers of the simulation, we adopt the following conversion units \cite{conversion}.
 
-\begin{tabular}{| l | l |}
-	\hline
-	Simulation units & Physical units \\ \hline
-	Time unit ($\Delta t$ = 1) & 1 year ($3.15 \times 10^7$ seconds)\\
-	Space unit ($\Delta d$ = 1) & 1 AU ($1.4960 \times 10^{11}$ meters) \\
-	Mass unit ($\Delta m$ = 1) & 1 solar mass ($1.9891 \times 10^{30}$ kilograms) \\ \hline
-\end{tabular}
+\begin{center}
+  \begin{tabular}{| l | l |}
+    \hline
+    \textbf{Simulation Units} & \textbf{Physical Units} \\ \hline
+    Time unit ($\Delta t$ = 1) & 1 year ($3.15 \times 10^7$ seconds)\\
+    Space unit ($\Delta d$ = 1) & 1 AU ($1.4960 \times 10^{11}$ meters) \\
+    Mass unit ($\Delta m$ = 1) & 1 solar mass ($1.9891 \times 10^{30}$ kilograms) \\ \hline
+  \end{tabular}
+\end{center}
 
 \section{Initial Conditions}
 
 \subsection{Space distribution}
 
-The total space of the simulation is $L$. The positions of the particles are randomly distributed according to a bivariate Gaussian distribution. The positions are sampled from the distributions,
+The simulation space is an $L \times L$ torus. The positions of the particles are randomly distributed according to a bivariate Gaussian distribution. The positions are sampled from the distributions,
 
 \begin{align}
 	p_x &= \dfrac{1}{\sqrt{2 \pi} \sigma} \exp{ -\frac{(x - \mu_x)^2}{2 \sigma^2}} \\
 	p_y &= \dfrac{1}{\sqrt{2 \pi} \sigma} \exp{ -\frac{(y - \mu_y)^2}{2 \sigma^2}}
 \end{align}
 
-where $\mu_x = \mu_y = \dfrac{L}{2}$. This sampling produces particles that are centered around $\left( \dfrac{L}{2}, \dfrac{L}{2} \right)$ where a massive particle with mass $1000M_{\odot}$ lies. The bodies form a 'bulge' around the center of the configuration.
+where $\mu_x = \mu_y = \dfrac{L}{2}$. This sampling produces particles that are centered around $\left( \dfrac{L}{2}, \dfrac{L}{2} \right)$ where a massive particle with mass $1000M_{\odot}$ lies. The bodies form a ``bulge'' around the center of the configuration.
 
 \subsection{Mass distribution}
 
@@ -522,14 +524,14 @@ Masses of the particles, excepting the central mass, are Poisson distributed wit
 The initial velocities of the particles are assigned assuming a stable circular orbit around the central mass neglecting the surrounding particles.
 \begin{align}
 	v_x &= -\sin(\theta) \sqrt{\dfrac{GM}{r}}\\
-	v_y &= \cos(\theta) \sqrt{\dfrac{GM}{r}}\\
+	v_y &= \cos(\theta) \sqrt{\dfrac{GM}{r}}
 \end{align}
 
 where $M$ is the mass of the central body, $G$ is the gravitational constant, $r$ is the separation between the central mass and the particle, and $\theta$ is the azimuthal angle between the central body and the particle body where the central body is at the origin. This provides the initial rotational component for the galaxy but does not create a stable configuration.
 
 \subsection{Time Evolution Plots}
 
-Given the initial conditions as described above, with simulation side length of $60$AU, 3000 particles, and a time step of $0.86$ hours, we advance the simulation and plot the resulting particle configuration at specific time intervals. The complete simulation can be found in \texttt{particles.mp4} or generated using \texttt{mp4.py}. The \texttt{README} file documents the simulation generation process.
+Given the initial conditions as described above, with simulation side length of $60$AU, 3000 particles, and a time step of $0.86$ hours, we advance the simulation and plot the resulting particle configuration at specific time intervals. The complete simulation can be found in \texttt{particles.gif}.
 
 \begin{figure}[H]
      	\centering
