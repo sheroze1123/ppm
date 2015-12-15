@@ -78,9 +78,11 @@
 \titlepic{\includegraphics[width=0.7\textwidth]{./particles/9.png}}
 \maketitle
 
+% adjust margins to make table of contents fit on a single page
+\newgeometry{left=1.5in, right=1.5in, top=1in, bottom=1in}
 \tableofcontents
-%\begin{exercises}
-%\item[]
+\restoregeometry
+
 \chapter{Introduction}
 This final project explores parallel particle-mesh methods applied to the collision-less \nbody{} problem in a shared memory programming model.
 
@@ -225,7 +227,7 @@ The advantage of the Particle-Mesh method is the performance. Updates to the par
 
 The increase in performance comes with an accuracy cost. Using the NGP scheme to compute acceleration on a particle decreases the resolution of the solver and to obtain fairly accurate time integration, the spatial sampling interval should be smaller than the wavelengths of importance in the physical system. Finer mass interpolation schemes such as CIC and mixed schemes are discussed in Hockney and Eastwood's Computer simulation using particles \cite{csup}.
 
-\chapter{Implementation Details}\label{chap:impl}
+\chapter{Implementation}\label{chap:impl}
 \TODO{expand chapter to describe the three implementations}
 
 We have implemented an \nbody{} simulator using the Particle-Mesh model and algorithm in \cpp{} and a simulation visualizer in Python. In this chapter, we discuss the implementation of both the simulator and visualizer.
@@ -293,7 +295,7 @@ transferring large files, the GUI visualizer can read and animate marshalled
 data from the network rather than from a file. This allows us to animate
 simulations without ever marshalling data to a file.
 
-\chapter{Performance} \label{chap:perf}
+\chapter{Performance and Evaluation} \label{chap:perf}
 
 In this chapter, we discuss how we used profiling to guide our optimization decisions, we discuss the tuning and optimizations we performed, and finally we evaluate the performance of our simulator with a large number of scaling studies.
 
@@ -557,7 +559,7 @@ Given the initial conditions as described above, with simulation side length of 
 	\label{fig:ev2}
 \end{figure}
 
-\chapter{Conclusions} \label{chap:conc}
+\chapter{Conclusion} \label{chap:conc}
 
 // We can probably tailor this section to 5220 more
 
