@@ -115,7 +115,7 @@ def time_vs_num_threads(data):
         plt.grid()
         handles, labels = ax.get_legend_handles_labels()
         lgd = ax.legend(handles, labels, fancybox=True, shadow=True,
-                        loc='center left', bbox_to_anchor=(1, 0.5))
+                        loc='upper center', bbox_to_anchor=(0.5, -0.1))
         fig.savefig("time_vs_num_threads-N={}.pdf".format(N),
                     bbox_extra_artists=(lgd,),
                     bbox_inches='tight')
@@ -146,7 +146,7 @@ def speedup_vs_num_threads(data):
         plt.grid()
         handles, labels = ax.get_legend_handles_labels()
         lgd = ax.legend(handles, labels, fancybox=True, shadow=True,
-                        loc='center left', bbox_to_anchor=(1, 0.5))
+                        loc='upper center', bbox_to_anchor=(0.5, -0.1))
         fig.savefig("speedup_vs_num_threads-N={}.pdf".format(N),
                     bbox_extra_artists=(lgd,),
                     bbox_inches='tight')
@@ -173,7 +173,7 @@ def time_vs_N(data):
         plt.grid()
         handles, labels = ax.get_legend_handles_labels()
         lgd = ax.legend(handles, labels, fancybox=True, shadow=True,
-                        loc='center left', bbox_to_anchor=(1, 0.5))
+                        loc='upper center', bbox_to_anchor=(0.5, -0.1))
         fig.savefig("time_vs_N-t={}.pdf".format(t),
                     bbox_extra_artists=(lgd,),
                     bbox_inches='tight')
@@ -204,7 +204,7 @@ def speedup_vs_N(data):
         plt.grid()
         handles, labels = ax.get_legend_handles_labels()
         lgd = ax.legend(handles, labels, fancybox=True, shadow=True,
-                        loc='center left', bbox_to_anchor=(1, 0.5))
+                        loc='upper center', bbox_to_anchor=(0.5, -0.1))
         fig.savefig("speedup_vs_N-t={}.pdf".format(t),
                     bbox_extra_artists=(lgd,),
                     bbox_inches='tight')
