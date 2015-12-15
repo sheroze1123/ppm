@@ -1,4 +1,5 @@
 \documentclass{report}
+\usepackage{algorithm}
 \usepackage{algorithmicx}
 \usepackage{algpseudocode}
 \usepackage{amsmath,amssymb,latexsym, mathtools}
@@ -18,6 +19,7 @@
 \usepackage{verbatim}
 
 \newcommand{\TODO}[1]{{\Huge TODO: #1}}
+\newcommand{\algoref}[1]{Algorithm~\ref{alg:#1}}
 \newcommand{\braced}[1]{\left[{#1}\right]}
 \newcommand{\chapref}[1]{Chapter~\ref{chap:#1}}
 \newcommand{\cpp}{C\texttt{++}}
@@ -171,19 +173,22 @@ The mass density of the system is sampled at the cell centers of the mesh. To re
 
 where $\rho_{i,j}$ is the mass density at the cell $(i,j)$, $k$ iterates over the particles and $\Delta d$ is the sampling interval in space.
 
-The following algorithm describes the 2 dimensional NGP scheme on a square mesh.
+\algoref{ngp} describes the 2 dimensional NGP scheme on a square mesh where
+$\text{cell}_{\rho}$ holds the mass density at the cell centers.
 
-\begin{algorithmic}
-  \ForAll{particles $i$}
-    \State find $(m, n)$: the index of the cell center in the mesh
-	  \State $\text{cell}_{\rho}(m,n) \gets \text{cell}_{\rho}(m,n) + m_i$
-  \EndFor
-  \ForAll{cell centers $(m, n)$}
-	  \State $\text{cell}_{\rho}(m,n) \leftarrow \text{cell}_{\rho}(m,n) / (\Delta d)^2$
-  \EndFor
-\end{algorithmic}
-
-where $\text{cell}_{\rho}$ holds the mass density at the cell centers.
+\begin{algorithm}[h]
+  \begin{algorithmic}[1]
+    \ForAll{particles $i$}
+      \State find $(m, n)$: the index of the cell center in the mesh
+      \State $\text{cell}_{\rho}(m,n) \gets \text{cell}_{\rho}(m,n) + m_i$
+    \EndFor
+    \ForAll{cell centers $(m, n)$}
+      \State $\text{cell}_{\rho}(m,n) \leftarrow \text{cell}_{\rho}(m,n) / (\Delta d)^2$
+    \EndFor
+  \end{algorithmic}
+  \caption{NGP scheme on square mesh}
+  \label{alg:ngp}
+\end{algorithm}
 
 The NGP scheme provides a fast method to compute the mass distribution of the system since the core operation is a summation that runs in linear time proportional to the number of particles. The disadvantage of the NGP scheme is that the mass densities are discontinuous.
 
@@ -206,21 +211,23 @@ Then, using equation~\ref{eq:phi_g}, we can solve for the gravitational accelera
 
 The gravitational acceleration of the cell centers can now be associated with the particles in the simulation using the NGP scheme.
 
-\subsection{Particle-Mesh Algorithm Summary}
+\subsection{Particle-Mesh Algorithm}
+To summarize the particle-mesh method, \algoref{ppm} describes a single time step \cite{csup}.
 
-To summarize the particle-mesh method, the following algorithm describes a single time step: \cite{csup}.
-
-\begin{enumerate}
-	\item Assign mass to cell centers using the NGP scheme.
-	\item Solve the Poisson's equation on the mesh in Fourier space by taking the Fourier transform of the mass distribution to obtain $\phi(\vec{k})$.
-	\item Compute the inverse Fourier transform to obtain $\phi(x,y)$.
-	\item Use central difference to obtain the gravitational acceleration at cell centers from $\phi(x,y)$.
-	\item Use the NGP scheme to assign gravitational acceleration values to each particle.
-	\item Use time integration to update the particle mass and velocity using the gravitational acceleration.
-\end{enumerate}
+\begin{algorithm}[h]
+  \begin{algorithmic}[1]
+    \State Assign mass to cell centers using the NGP scheme (\algoref{ngp}).
+    \State Solve the Poisson's equation on the mesh in Fourier space by taking the Fourier transform of the mass distribution to obtain $\phi(\vec{k})$.
+    \State Compute the inverse Fourier transform to obtain $\phi(x,y)$.
+    \State Use central difference to obtain the gravitational acceleration at cell centers from $\phi(x,y)$.
+    \State Use the NGP scheme to assign gravitational acceleration values to each particle.
+    \State Use time integration to update the particle mass and velocity using the gravitational acceleration.
+  \end{algorithmic}
+  \caption{Particle-Mesh}
+  \label{alg:ppm}
+\end{algorithm}
 
 \subsection{Performance and Accuracy tradeoffs}
-
 The Particle-Particle model described in Section~\ref{sec:pp} although accurate requires a high computational cost, taking $O(N_p^2)$ time.
 
 The advantage of the Particle-Mesh method is the performance. Updates to the particle attributes occur in $O(N_p)$ time. The slowest step in the method is the computation of the two dimensional Fourier transform which takes $O(N^2 \log(N^2))$ time.
@@ -228,37 +235,18 @@ The advantage of the Particle-Mesh method is the performance. Updates to the par
 The increase in performance comes with an accuracy cost. Using the NGP scheme to compute acceleration on a particle decreases the resolution of the solver and to obtain fairly accurate time integration, the spatial sampling interval should be smaller than the wavelengths of importance in the physical system. Finer mass interpolation schemes such as CIC and mixed schemes are discussed in Hockney and Eastwood's Computer simulation using particles \cite{csup}.
 
 \chapter{Implementation}\label{chap:impl}
-\TODO{expand chapter to describe the three implementations}
+We have implemented a set of \nbody{} simulators using the Particle-Mesh model and algorithm in \cpp{} and a pair of simulation visualizers in Python. In this chapter, we discuss the implementation of both the simulators and visualizers.
 
-We have implemented an \nbody{} simulator using the Particle-Mesh model and algorithm in \cpp{} and a simulation visualizer in Python. In this chapter, we discuss the implementation of both the simulator and visualizer.
+\section{Simulators}\label{sec:simulator}
+In this section, we first discuss FFTW: the fast Fourier transform library we use in our simulators. We then discuss the periodic boundary conditions we use in our algorithm. Finally, we discuss the implementation details of our simulators.
 
-\section{FFTW}\label{sec:fftw}
-
+\subsection{FFTW}\label{sec:fftw}
 To compute the Fourier transform required in the Particle-Mesh method, we use the Fast Fourier Transform, obtained from the FFTW package. (www.fftw.org, the "Fastest Fourier Transform in the West" \cite{fftw}). In FFTW, the Discrete Fourier Transform of a complex one dimensional array $X$ computes $Y$ where,
 
 \begin{equation}
 	Y_k = \sum_{j=0}^{n-1} X_j e^{-2 \pi j k i /n}
 \end{equation}
 
-\subsection{Periodic Boundary Conditions}
-
-The Discrete Fourier Transform assumes periodic boundary conditions. Therefore, our 2D gravitational potential is implemented with a toroidal geometry:
-
-\begin{align}
-	\phi(x+L,y) &= \phi(x,y) \\
-	\phi(x,y+L) &= \phi(x,y)
-\end{align}
-
-where $L$ is the side length of the simulation in physical units. Therefore, any particle that goes out of the grid is 'wrapped around' and introduced from the opposite end.
-
-\begin{lstlisting}[aboveskip=11pt,belowskip=-10pt]
-if (particle_pos[2*i] < 0.0) particle_pos[2*i]     = fmod(particle_pos[2*i], L) + L;
-if (particle_pos[2*i] > L) particle_pos[2*i]       = fmod(particle_pos[2*i], L);
-if (particle_pos[2*i+1] < 0.0) particle_pos[2*i+1] = fmod(particle_pos[2*i+1], L) + L;
-if (particle_pos[2*i+1] > L) particle_pos[2*i+1]   = fmod(particle_pos[2*i+1],L);
-\end{lstlisting}
-
-\subsection{FFTW Usage}
 In the solution implementation, to compute the Fourier space representation of the density distribution $\rho$, we perform a forward transform.
 
 \begin{lstlisting}[aboveskip=11pt,belowskip=-10pt]
@@ -279,9 +267,99 @@ fftw_execute(phi_plan);
 
 Since we perform this FFT operation for multiple time steps, FFTW offers an option to analyze the fastest style of computation for the compute by passing in the \texttt{FFTW\_MEASURE} flag to the function.
 
-\section{Marshalling and Animations}
+\subsection{Periodic Boundary Conditions}
+The Discrete Fourier Transform assumes periodic boundary conditions. Therefore, our 2D gravitational potential is implemented with a toroidal geometry:
 
-Our simulator iteratively updates the positions of the particles being simulated. After each iteration, it writes the particles' positions to a text file: a process known as marshalling. In addition to the positions, our simulator also marshals the size of the particle mesh ($N$), the number of particles ($N_p$), the number of iterations, and the masses of each particle. The marshalling logic is implemented in \texttt{marshaller.cpp}. Also note that our simulator only marshals data when debugging and is elided via conditional compilation otherwise.
+\begin{align}
+	\phi(x+L,y) &= \phi(x,y) \\
+	\phi(x,y+L) &= \phi(x,y)
+\end{align}
+
+where $L$ is the side length of the simulation in physical units. Therefore, any particle that goes out of the grid is 'wrapped around' and introduced from the opposite end.
+
+\begin{lstlisting}[aboveskip=11pt,belowskip=-10pt]
+if (particle_pos[2*i] < 0.0) particle_pos[2*i]     = fmod(particle_pos[2*i], L) + L;
+if (particle_pos[2*i] > L) particle_pos[2*i]       = fmod(particle_pos[2*i], L);
+if (particle_pos[2*i+1] < 0.0) particle_pos[2*i+1] = fmod(particle_pos[2*i+1], L) + L;
+if (particle_pos[2*i+1] > L) particle_pos[2*i+1]   = fmod(particle_pos[2*i+1],L);
+\end{lstlisting}
+
+\subsection{Serial Simulator}
+Our serial simulator, found in \texttt{serial\_opt.cpp}, is a direct implementation of \algoref{ppm} which uses FFTW for the fast Fourier transforms. The serial simulator, as well as the other simulators, accepts a set of command line arguments that alter the execution of the simulation.
+\begin{itemize}
+  \item The \texttt{-l <$L$>} flag instructs our simulator to simulate on an
+    underlying $L \times L$ space. By default particles are distributed
+    uniformly at random with $x$ and $y$ coordinates between $\frac{2}{5}L$
+    and $\frac{3}{5}L$.
+  \item The \texttt{-n <$N$>} flag instructs our simulator to use an $N \times N$ mesh grid. The $N \times N$ grid is overlaid uniformly over the $L \times L$ space.
+  \item The \texttt{-p <$N_p$>} flag instructs our simulator to simulate $N_p$ particles.
+  \item The \texttt{-s <$s$>} flag instructs our simulator to perform $s$ time steps.
+  \item The \texttt{-t <$\Delta t$>} flag instructs our simulator to use time step $\Delta t$.
+\end{itemize}
+
+\subsection{\fftwomp{} Simulator}
+The \fftwomp{} simulator is the first of three parallel simulators and is found in \texttt{ppm\_omp.cpp}. The \fftwomp{} simulator is identical to the serial simulator except for one key difference: the fast Fourier transforms are done in parallel. FFTW provides parallel implementations of its fast Fourier transform functions that use OMP for parallelization, so this process is relatively easy. We simply add the following boilerplate to our serial simulator:
+
+\begin{lstlisting}[aboveskip=11pt,belowskip=-10pt]
+fftw_init_threads();                  // initialize FFTW for parallelization
+fftw_plan_with_nthreads(num_threads); // set the number of OMP threads to use
+// ...                                // plan and execute FFT's as usual
+fftw_cleanup_threads();               // destroy threads
+\end{lstlisting}
+
+The \fftwomp{} simulator and the other two parallel simulators also accept a \texttt{-o $o$} flag which instructs the simulators to use $o$ OMP threads.
+
+\subsection{\partialomp{} Simulator}
+The \partialomp{} simulator, found in \texttt{ppm\_omp\_partial.cpp}, adds additional parallelization on top of the \fftwomp{} simulator. Specifically, it uses OMP to parallelize all loops that range over the particles. For example, consider the following loop found in the \fftwomp{} simulator which implements part of \algoref{ngp}:
+
+\begin{minipage}{\linewidth}
+\begin{lstlisting}[aboveskip=11pt,belowskip=-10pt]
+int ind_x, ind_y, index, mass;
+for (int i=0; i<N_p; i++) {
+    ind_x =  floor(particle_pos[2*i]/delta_d);
+    ind_y =  floor(particle_pos[2*i+1]/delta_d);
+    index = ind_y*N + ind_x;
+    mass = particle_mass[i];
+    rho[index] += mass;
+}
+\end{lstlisting}
+\end{minipage}
+
+The \partialomp{} simulator parallelizes this loop with the \texttt{\#pragma omp parallel for} construct. It also protects shared memory accesses with appropriate mutual exclusion or atomic updates.
+
+\begin{minipage}{\linewidth}
+\begin{lstlisting}[aboveskip=11pt,belowskip=-10pt]
+int ind_x, ind_y, index, mass;
+#pragma omp parallel for                         // <-- new
+for (int i=0; i<N_p; i++) {
+    ind_x =  floor(particle_pos[2*i]/delta_d);
+    ind_y =  floor(particle_pos[2*i+1]/delta_d);
+    index = ind_y*N + ind_x;
+    mass = particle_mass[i];
+    #pragma omp critical                         // <-- new
+    rho[index] += mass;
+}
+\end{lstlisting}
+\end{minipage}
+
+Note that the \partialomp{} simulator \emph{does not} parallelize all loops, only those that range over particles.
+
+\subsection{\fullomp{} Simulator}
+The \fullomp{} simulator, found in \texttt{ppm\_omp\_full.cpp}, builds off of the \partialomp{} simulator and very aggressively parallelizes \emph{all} loops. For example, consider the following loop which ranges over the $N \times N$ mesh. Since this loop does not range over the particles, the \partialomp{} simulator would not parallelize it, but the \fullomp{} simulator does.
+
+\begin{minipage}{\linewidth}
+\begin{lstlisting}[aboveskip=11pt,belowskip=-10pt]
+#pragma omp for collapse(2) nowait
+for (int j=0; j<N; j++) {
+    for (int i=1; i<N-1; i++) {
+        a_x[j*N + i] = (-phi[j*N + i-1] +  phi[j*N + i+1]) / scaling_factor;
+    }
+}
+\end{lstlisting}
+\end{minipage}
+
+\section{Visualizers}
+Our simulators iteratively updates the positions of the particles being simulated. After each iteration, it writes the particles' positions to a text file: a process known as marshalling. In addition to the positions, our simulator also marshals the size of the particle mesh ($N$), the number of particles ($N_p$), the number of iterations, and the masses of each particle. The marshalling logic is implemented in \texttt{marshaller.cpp}. Also note that our simulator only marshals data when debugging and is elided via conditional compilation otherwise.
 
 The marshalled files are then parsed and animated by one of two visualizers.
 The first, \texttt{scripts/mp4.py}, uses the MoviePy library \cite{moviepy} to
