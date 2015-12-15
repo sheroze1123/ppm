@@ -1,7 +1,7 @@
 # Parallel Particle Mesh applied to N-body simulations
 
 <p align="center"
-![Evolution](https://github.com/sheroze1123/ppm/blob/master/particles.gif)
+  <img src="https://raw.githubusercontent.com/sheroze1123/ppm/master/particles.gif" alt="particle simulation"/>
 </p>
 
 ## Building ##
