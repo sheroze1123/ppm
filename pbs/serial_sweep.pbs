@@ -1,0 +1,17 @@
+#! /bin/bash -l
+
+#PBS -l nodes=1:ppn=24
+#PBS -l walltime=0:30:00
+#PBS -N serial_sweep
+#PBS -j oe
+
+module load cs5220
+cd $PBS_O_WORKDIR
+echo "name L N N_p dt T num_threads total_time ave_time"
+for prog in "./serial_opt"; do
+    for (( N = 128; N <= 4096; N *= 2 )); do
+        for (( p = 800; p <= 12800; p *= 2 )); do
+            $prog -s 10 -n $N -p $p
+        done
+    done
+done
