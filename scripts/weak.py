@@ -110,7 +110,7 @@ def weak_scaling(data):
             times = get(data, predicate, ("num_threads", num_threads), "ave_time")
             t0 = times[0]
             times = [t0 / t_ for t_ in times]
-            ax.plot(num_threads, times, next(styles),
+            ax.plot(num_threads[1:], times[1:], next(styles),
                     label="{}".format(program))
 
         plt.xlabel("number of threads, N_p={}".format(N_p))
