@@ -630,7 +630,7 @@ Given the initial conditions as described above, with simulation side length of 
 	\label{fig:ev2}
 \end{figure}
 
-\chapter{Conclusion} \label{chap:conc}
+\chapter{Conclusions} \label{chap:conc}
 To improve the time integration process, future work can be undertaken to automatically scale the time step size to prevent instabilities. A maximum velocity can be enforced on the mesh, proportional to the cell widths, to limit the information propagation rate across the cells and the next time step can be dilated accordingly.
 
 A better approximation for mass assignments to cells than the NGP scheme discussed here is the CIC method or the "cloud-in-cell" method described in Chapter 5-2-3 of Hockney and Eastwood's Computer simulation using particles \cite{csup}. It is costlier in terms of floating point operations per mass assignment run, but provides a more accurate estimate, giving forces continuous in volume. This method considers the closest $2^N$ neighbors where $N$ is the dimensionality of the problem, to assign masses.
